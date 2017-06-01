@@ -274,6 +274,8 @@ template "#{rows_path}" do
 		:file_preview_txt_size => node["hopsworks"]["file_preview_txt_size"],
                 :zk_ip => zk_ip,
                 :dela_ip => dela_ip,
+                :dela_cluster_http_port => node["hopsworks"]["dela"]["cluster_http_port"],
+                :dela_hopsworks_public_port => node["hopsworks"]["dela"]["public_hopsworks_port"],
                 :java_home => node["java"]["java_home"],
                 :dela_port => node["dela"]["http_port"],
                 :kafka_ip => kafka_ip,                
