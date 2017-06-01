@@ -107,7 +107,6 @@ default["hopsworks"]["kafka_num_replicas"]       = "1"
 default["hopsworks"]["kafka_num_partitions"]     = "1"
 
 default["glassfish"]["ciphersuite"]				= "+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,+TLS_RSA_WITH_AES_128_CBC_SHA256,+TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA"
-
 default["hopsworks"]["monitor_max_status_poll_try"] = "5"
 
 #
@@ -120,11 +119,21 @@ default["hopsworks"]["org_email"]                      = "user@hops.site"
 default["hopsworks"]["org_country_code"]               = "SE"
 default["hopsworks"]["org_city"]                       = "Stockholm"
 
+#
+# Dela  - please do not change without consulting dela code
+#
+default["hopsworks"]["dela"]["cluster_http_port"]      = "8080"
+default["hopsworks"]["dela"]["public_hopsworks_port"]  = "8080"
 
-default["hopsworks"]["dela"]["domain"]                 = "bbc1.sics.se"
-default["hopsworks"]["dela"]["certifcate"]             = "DummyCert25100"
-default["hopsworks"]["dela"]["hops_site_base_uri"]     = "http://bbc1.sics.se:25100/hops-site/webresources"
-default["hopsworks"]["dela"]["public_search_endpoint"] =  "hopsworks/api/elastic/publicdatasets/"
+default["hopsworks"]["dela"]["certificate"]            = "DummyCert25100"
+
+#
+# Hops-site
+#
+default["hopsworks"]["dela"]["hops_site"]["domain"]    = "bbc1.sics.se"
+default["hopsworks"]["dela"]["hops_site"]["port"]      = node["hopsworks"]["port"]
+default["hopsworks"]["dela"]["hops_site"]["base_uri"]  = "http://#{node["hopsworks"]["dela"]["hops_site"]["domain"]}:#{node["hopsworks"]["dela"]["hops_site"]["port"]}/hops-site/webresources"
+#
 
 default["hopsworks"]["max_gpu_request_size"]           = 1
 default["hopsworks"]["max_cpu_request_size"]           = 1
