@@ -2,6 +2,8 @@ require 'json'
 require 'base64'
 require 'digest'
 
+setup_aws()
+
 private_ip=my_private_ip()
 username=node['hopsworks']['admin']['user']
 password=node['hopsworks']['admin']['password']
