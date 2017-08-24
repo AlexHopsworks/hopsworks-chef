@@ -1808,6 +1808,3 @@ attribute "smtp/email_password",
           :required => "required",
           :type => 'string'
 
-attribute "jupyter/python",
-          :description => "'true' (default) to enable the python interpreter, 'false' to disable it (more secure). ",
-          :type => 'string'
