@@ -44,7 +44,7 @@ cookbook 'sysctl', '~> 0.10.0'
 cookbook 'conda', github: "AlexHopsworks/conda-chef", branch: "local"
 
 group :test do
-  cookbook 'karamel', github: "AlexHopsworks/karamel-chef_dela", branch: "alex2"
+  cookbook 'karamel', github: "AlexHopsworks/karamel-chef_dela", branch: "local"
   cookbook 'hostsfile', '~> 2.4.5'
 end
 
