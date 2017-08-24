@@ -1833,4 +1833,3 @@ attribute "hopssite/user",
 attribute "hopssite/password",
           :description => "Password for the registered username at www.hops.site.",
           :type => 'string'
-
