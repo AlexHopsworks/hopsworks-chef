@@ -53,7 +53,7 @@ default["hopsworks"]["ear_url"]                  = "#{node["download_url"]}/hops
 #
 # hops.site settings
 #
-default["hopssite"]["url"]                       = "bbc1.sics.se:24201"
+default["hopssite"]["url"]                       = "https://www.hops.site"
 default["hopssite"]["user"]                      = "agent@hops.io"
 default["hopssite"]["password"]                  = "admin"
 default["hopssite"]["base_dir"]                  = node["hopsworks"]["domains_dir"] + "/domain1/bin"
