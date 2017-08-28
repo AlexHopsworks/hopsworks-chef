@@ -596,7 +596,7 @@ template "#{theDomain}/config/ca.ini" do
 end
 
 template "#{theDomain}/bin/csr-ca.py" do
-  source "csr-ca.py"
+  source "csr-ca.py.erb"
   owner node["glassfish"]["user"]
   mode 0750
   action :create
