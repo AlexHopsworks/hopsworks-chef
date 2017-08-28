@@ -1183,7 +1183,7 @@ attribute "kkafka/broker/super/users",
 
 ##
 ##
-## Elastic 
+## Elastic
 ##
 ##
 
@@ -1430,7 +1430,7 @@ attribute "ndb/group",
 attribute "ndb/BackupDataDir",
           :description => "Directory to store mysql cluster backups in",
           :type => 'string'
- 
+
 attribute "mysql/user",
           :description => "User that runs mysql server",
           :required => "required",
@@ -1828,3 +1828,8 @@ attribute "hopssite/user",
 attribute "hopssite/password",
           :description => "Password for the registered username at www.hops.site.",
           :type => 'string'
+
+attribute "hopssite/certs_dir",
+          :description => "Installation directory for ssl/tls certs for hops.site.",
+          :type => 'string'
+

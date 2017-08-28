@@ -53,9 +53,15 @@ default["hopsworks"]["ear_url"]                  = "#{node["download_url"]}/hops
 #
 # hops.site settings
 #
-default["hopssite"]["url"]                       = "https://www.hops.site"
+default["hopssite"]["url"]                       = "bbc1.sics.se:24201"
 default["hopssite"]["user"]                      = "agent@hops.io"
 default["hopssite"]["password"]                  = "admin"
+default["hopssite"]["base_dir"]                  = node["hopsworks"]["domains_dir"] + "/domain1/bin"
+default["hopssite"]["certs_dir"]                 = "#{node["hopsworks"]["dir"]}/certs-dir/hops-site-certs"
+default["hopssite"]["keystore_dir"]              = "#{node["hopssite"]["certs_dir"]}/keystores"
+
+default["hopssite"]["retry_interval"]            = 60
+
 
 
 default["hopsworks"]["admin"]["user"]               = "adminuser"
