@@ -584,6 +584,19 @@ directory node["jupyter"]["base_dir"]  do
   action :create
 end
 
+case node["platform_family"]
+  when "debian"
+   apt_package "python-openssl" do
+     action :install
+   end
+  end
+  when "rhel"
+   python_package "pyOpenSSL" do
+     action :install
+   end
+  end
+
+
 directory node["hopssite"]["certs_dir"] do
   owner node["glassfish"]["user"]
   mode "750"
