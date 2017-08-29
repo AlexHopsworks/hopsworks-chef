@@ -56,7 +56,7 @@ default["hopsworks"]["ear_url"]                  = "#{node["download_url"]}/hops
 default["hopssite"]["url"]                       = "https://www.hops.site"
 default["hopssite"]["user"]                      = "agent@hops.io"
 default["hopssite"]["password"]                  = "admin"
-default["hopssite"]["base_dir"]                  = node["hopsworks"]["domains_dir"] + "/domain1/bin"
+default["hopssite"]["base_dir"]                  = node["hopsworks"]["domains_dir"] + "/domain1"
 default["hopssite"]["certs_dir"]                 = "#{node["hopsworks"]["dir"]}/certs-dir/hops-site-certs"
 default["hopssite"]["keystore_dir"]              = "#{node["hopssite"]["certs_dir"]}/keystores"
 
