@@ -40,63 +40,62 @@ requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
 retries = 20
 
-class Util():
+
+class Util:
 
     def logging_level(self, level):
         return {
-                'INFO': logging.INFO,
-                'WARN': logging.WARN,
-                'WARNING': logging.WARNING,
-                'ERROR': logging.ERROR,
-                'DEBUG' : logging.DEBUG,
-                'CRITICAL': logging.CRITICAL,
-                }.get(level, logging.NOTSET)
+            'INFO': logging.INFO,
+            'WARN': logging.WARN,
+            'WARNING': logging.WARNING,
+            'ERROR': logging.ERROR,
+            'DEBUG': logging.DEBUG,
+            'CRITICAL': logging.CRITICAL,
+        }.get(level, logging.NOTSET)
 
 
-class Register():
+class Register:
 
     def __init__(self, csr, key):
         while True:
             cert = Register.register(csr, key)
-            if cert != None:
+            if cert is not None:
                 Cert.store(cert, key)
                 break
             time.sleep(retry_interval)
 
     @staticmethod
     def register(csr, key):
-            try:
-                json_headers = {'User-Agent': 'Agent', 'content-type': 'application/json'}
-                form_headers = {'User-Agent': 'Agent', 'content-type': 'application/x-www-form-urlencoded'}
-                payload = {}
-                payload["csr"] = csr
-                payload["agent-password"] = ""
-                payload["host-id"] = host_id
-                logger.info("Registering with HopsWorks...")
-                session = requests.Session()
-                session.post(login_url, data={'email': server_username, 'password': server_password}, headers=form_headers, verify=False)
-                resp = session.post(sign_cert_url, data=json.dumps(payload), headers=json_headers, verify=False)
-                if not resp.status_code == HTTP_OK:
-                    raise Exception('Could not register: Unknown host id or internal error on the dashboard (Status code: {0}).'.format(resp.status_code))
+        try:
+            json_headers = {'User-Agent': 'Agent', 'content-type': 'application/json'}
+            form_headers = {'User-Agent': 'Agent', 'content-type': 'application/x-www-form-urlencoded'}
+            payload = {}
+            payload["csr"] = csr
+            payload["agent-password"] = ""
+            logger.info("Registering with HopsWorks...")
+            session = requests.Session()
+            session.post(login_url, data={'email': server_username, 'password': server_password}, headers=form_headers, verify=False)
+            resp = session.post(sign_cert_url, data=json.dumps(payload), headers=json_headers, verify=False)
+            if not resp.status_code == HTTP_OK:
+                raise Exception('Could not register: Unknown host id or internal error on the dashboard (Status code: {0}).'.format(resp.status_code))
 
-                # Loads (Load String) takes a Json file and converts into python data structure (dict or list, depending on JSON)
-                # jData = json.loads(myResponse.content)
-                jData = json.loads(resp.content)
-                cert = jData['pubAgentCert']
-                caCert = jData['caPubCert']
+            jData = json.loads(resp.content)
+            cert = jData['pubAgentCert']
+            caCert = jData['caPubCert']
 
-                cert_dir = os.path.dirname(os.path.abspath(__file__))
-                with open(join(cert_dir, CA_FILE), "wt") as f:
-                    f.write(caCert)
-                logger.info("Writing Ca Public key to {0}.".format(CA_FILE))
+            cert_dir = os.path.dirname(os.path.abspath(__file__))
+            with open(join(cert_dir, CA_FILE), "wt") as f:
+                f.write(caCert)
+            logger.info("Writing Ca Public key to {0}.".format(CA_FILE))
 
-                logger.info("Registered successfully.")
-                return cert
-            except Exception as err:
-                logger.error("{0}. Retrying in {1} seconds...".format(err, retry_interval))
-                return None
+            logger.info("Registered successfully.")
+            return cert
+        except Exception as err:
+            logger.error("{0}. Retrying in {1} seconds...".format(err, retry_interval))
+            return None
 
-class Cert():
+
+class Cert:
 
     @staticmethod
     def get_dir():
@@ -108,16 +107,8 @@ class Cert():
         return exists(join(cert_dir, CERT_FILE)) and exists(join(cert_dir, KEY_FILE))
 
     @staticmethod
-    def existsKeystore():
+    def exists_keystore():
         return exists(SERVER_KEYSTORE) and exists(SERVER_TRUSTSTORE)
-
-    @staticmethod
-    def read_key_and_csr():
-        csrFile = open("<%= node.hopsworks.domains_dir %>/domain1/config/ca/intermediate/csr/intermediate.csr.pem","r")
-        csr = csrFile.read()
-        pkFile = open("<%= node.hopsworks.domains_dir %>/domain1/config/ca/intermediate/private/intermediate.key.pem","r")
-        private_key = pkFile.read()
-        return csr, private_key
 
     @staticmethod
     def create_key_and_csr():
@@ -155,7 +146,7 @@ class Cert():
             f.write(key)
         logger.info("Writing Cert/Key pair to {0} - {1}.".format(CERT_FILE, KEY_FILE))
 
-var="~#@#@!#@!#!@#@!#"
+var = "~#@#@!#@!#!@#@!#"
 
 config_mutex = Lock()
 
@@ -212,12 +203,13 @@ if __name__ == '__main__':
 
     if not Cert.exist():
         (csr, key) = Cert.create_key_and_csr()
-        Register(csr, key) # Registering with the dashboard
+        Register(csr, key)
         subprocess.call("<%= node[:hopssite][:base_dir] %>/bin/ca-keystore.sh")
     else:
         logger.info('Certificate files exist. Already registered. Skipping registration phase.')
 
-    if not Cert.existsKeystore():
+    if not Cert.exists_keystore():
         subprocess.call("<%= node[:hopssite][:base_dir] %>/bin/ca-keystore.sh")
     else:
         logger.info('Keystore files found.')
+
