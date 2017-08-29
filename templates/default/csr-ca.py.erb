@@ -21,14 +21,9 @@ import requests
 import logging.handlers
 import json
 from OpenSSL import crypto
-import socket
 from os.path import exists, join
-import netifaces
-from IPy import IP
 import logging
 import subprocess
-import string
-import random
 
 
 try:
@@ -196,7 +191,7 @@ except:
     pass
 with open(LOG_FILE, 'w'):  # clear log file
     pass
-logger = logging.getLogger('agent')
+logger = logging.getLogger('csr-ca-agent')
 logger_formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 logger_file_handler = logging.handlers.RotatingFileHandler(LOG_FILE, "w", maxBytes=10000000, backupCount=1)
 logger_stream_handler = logging.StreamHandler()
