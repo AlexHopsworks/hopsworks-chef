@@ -1,7 +1,8 @@
 [hops-site]
 url = <%= node[:hopssite][:url] %>
-path-login = hopsworks-ca/ca/agentservice/login
-path-sign-cert = hopsworks-ca/ca/agentservice/hopsworks
+path-login = /hopsworks-api/api/auth/login
+path-sign-cert = /hopsworks-ca/ca/agentservice/hopsworks
 username = <%= node[:hopssite][:user] %>
 password = <%= node[:hopssite][:password] %>
 retry-interval = <%= node[:hopssite][:retry_interval] %>
+logging-level = "INFO"
