@@ -589,12 +589,12 @@ case node["platform_family"]
    apt_package "python-openssl" do
      action :install
    end
-  end
+
   when "rhel"
    python_package "pyOpenSSL" do
      action :install
    end
-  end
+end
 
 
 directory node["hopssite"]["certs_dir"] do
