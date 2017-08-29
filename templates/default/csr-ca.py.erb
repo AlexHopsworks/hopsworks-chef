@@ -38,7 +38,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 requests_log = logging.getLogger("requests.packages.urllib3")
 requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
-retries = 20
+retries = 5 # * retry_interval sec
 
 
 class Util:
@@ -57,10 +57,14 @@ class Util:
 class Register:
 
     def __init__(self, csr, key):
+        count_retry = 0
         while True:
             cert = Register.register(csr, key)
             if cert is not None:
                 Cert.store(cert, key)
+                break
+            count_retry += 1
+            if count_retry == retries:
                 break
             time.sleep(retry_interval)
 
