@@ -38,7 +38,8 @@ logging.getLogger().setLevel(logging.DEBUG)
 requests_log = logging.getLogger("requests.packages.urllib3")
 requests_log.setLevel(logging.DEBUG)
 requests_log.propagate = True
-retries = 5 # * retry_interval sec
+retries = 5
+retry_count = 0
 
 
 class Util:
@@ -57,14 +58,13 @@ class Util:
 class Register:
 
     def __init__(self, csr, key):
-        count_retry = 0
         while True:
             cert = Register.register(csr, key)
             if cert is not None:
                 Cert.store(cert, key)
                 break
-            count_retry += 1
-            if count_retry == retries:
+            retry_count += 1
+            if retry_count == retries:
                 break
             time.sleep(retry_interval)
 
@@ -95,7 +95,8 @@ class Register:
             logger.info("Registered successfully.")
             return cert
         except Exception as err:
-            logger.error("{0}. Retrying in {1} seconds...".format(err, retry_interval))
+            if retry_count + 1 < retries:
+                logger.error("{0}. Number of retries left {1}. Retrying in {2} seconds...".format(err, retries - (retry_count + 1), retry_interval))
             return None
 
 
@@ -130,7 +131,7 @@ class Cert:
         req.get_subject().L = "<%= node['hopsworks']['cert']['l'] %>"
         req.get_subject().O = "<%= node['hopsworks']['cert']['o'] %>"
         req.get_subject().OU = "<%= node['hopsworks']['cert']['ou'] %>"
-        req.get_subject().__setattr__("emailAddress", "<%= node['hopssite']['user'] %>")
+        req.get_subject().__setattr__("emailAddress", "<%= node['hopsworks']['email'] %>")
 
         req.set_pubkey(pkey)
         req.sign(pkey, 'sha256')
@@ -174,6 +175,7 @@ try:
     server_username = config.get('hops-site', 'username')
     server_password = config.get('hops-site', 'password')
     retry_interval = config.getfloat('hops-site', 'retry-interval')
+    retries = config.getfloat('hops-site', 'max-retries')
     logging_level = config.get('hops-site', 'logging-level').upper()
 except Exception, e:
     print "Exception while reading {0}: {1}".format(CONFIG_FILE, e)

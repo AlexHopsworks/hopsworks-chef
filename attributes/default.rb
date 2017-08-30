@@ -61,12 +61,13 @@ default["hopssite"]["certs_dir"]                 = "#{node["hopsworks"]["dir"]}/
 default["hopssite"]["keystore_dir"]              = "#{node["hopssite"]["certs_dir"]}/keystores"
 
 default["hopssite"]["retry_interval"]            = 60
+default["hopssite"]["max_retries"]               = 5
 
 
 
-default["hopsworks"]["admin"]["user"]               = "adminuser"
-default["hopsworks"]["admin"]["password"]           = "adminpw"
-default["glassfish"]["cert"]["password"]            = "#{node["hopsworks"]["admin"]["password"]}"
+default["hopsworks"]["admin"]["user"]            = "adminuser"
+default["hopsworks"]["admin"]["password"]        = "adminpw"
+default["glassfish"]["cert"]["password"]         = "#{node["hopsworks"]["admin"]["password"]}"
 default["hopsworks"]["twofactor_auth"]           = "false"
 default["hopsworks"]["twofactor_exclude_groups"] = "AGENT" #semicolon separated list of roles
 ## Suffix can be: (defaults to minutes if omitted)

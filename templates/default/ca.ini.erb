@@ -5,4 +5,5 @@ path-sign-cert = /hopsworks-ca/ca/agentservice/hopsworks
 username = <%= node[:hopssite][:user] %>
 password = <%= node[:hopssite][:password] %>
 retry-interval = <%= node[:hopssite][:retry_interval] %>
+max-retries = <%= node[:hopssite][:max_retries] %>
 logging-level = "INFO"

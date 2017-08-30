@@ -1833,3 +1833,11 @@ attribute "hopssite/certs_dir",
           :description => "Installation directory for ssl/tls certs for hops.site.",
           :type => 'string'
 
+attribute "hopssite/retry_interval",
+          :description => "Certificate signing request retry interval for hops.site.",
+          :type => 'string'
+
+attribute "hopssite/max_retries",
+          :description => "Certificate signing request maximum number of retries for hops.site.",
+          :type => 'string'
+
