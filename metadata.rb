@@ -1829,10 +1829,6 @@ attribute "hopssite/password",
           :description => "Password for the registered username at www.hops.site.",
           :type => 'string'
 
-attribute "hopssite/certs_dir",
-          :description => "Installation directory for ssl/tls certs for hops.site.",
-          :type => 'string'
-
 attribute "hopssite/retry_interval",
           :description => "Certificate signing request retry interval for hops.site.",
           :type => 'string'

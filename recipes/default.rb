@@ -303,7 +303,8 @@ template "#{rows_path}" do
                 :org_city => node["hopsworks"]["org_city"],                
                 :vagrant_enabled => vagrant_enabled,
                 :public_ip => public_ip,
-                :monitor_max_status_poll_try => node["hopsworks"]["monitor_max_status_poll_try"]
+                :monitor_max_status_poll_try => node["hopsworks"]["monitor_max_status_poll_try"],
+                :dela_enabled => node["hopssite"]["user"].empty? == false
               })
    notifies :insert_rows, 'hopsworks_grants[hopsworks_tables]', :immediately
 end

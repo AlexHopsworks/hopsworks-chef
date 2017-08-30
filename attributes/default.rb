@@ -50,21 +50,6 @@ default["hopsworks"]["war_url"]                  = "#{node["download_url"]}/hops
 default["hopsworks"]["ca_url"]                   = "#{node["download_url"]}/hopsworks/#{node["hopsworks"]["version"]}/hopsworks-ca.war"
 default["hopsworks"]["ear_url"]                  = "#{node["download_url"]}/hopsworks/#{node["hopsworks"]["version"]}/hopsworks-ear.ear"
 
-#
-# hops.site settings
-#
-default["hopssite"]["url"]                       = "https://www.hops.site"
-default["hopssite"]["user"]                      = "agent@hops.io"
-default["hopssite"]["password"]                  = "admin"
-default["hopssite"]["base_dir"]                  = node["hopsworks"]["domains_dir"] + "/domain1"
-default["hopssite"]["certs_dir"]                 = "#{node["hopsworks"]["dir"]}/certs-dir/hops-site-certs"
-default["hopssite"]["keystore_dir"]              = "#{node["hopssite"]["certs_dir"]}/keystores"
-
-default["hopssite"]["retry_interval"]            = 60
-default["hopssite"]["max_retries"]               = 5
-
-
-
 default["hopsworks"]["admin"]["user"]            = "adminuser"
 default["hopsworks"]["admin"]["password"]        = "adminpw"
 default["glassfish"]["cert"]["password"]         = "#{node["hopsworks"]["admin"]["password"]}"
@@ -141,11 +126,24 @@ default["hopsworks"]["dela"]["public_hopsworks_port"]  = "8080"
 default["hopsworks"]["dela"]["certificate"]            = "DummyCert25100"
 
 #
-# Hops-site
+# Hops-site 
 #
-default["hopsworks"]["dela"]["hops_site"]["domain"]    = "bbc1.sics.se"
-default["hopsworks"]["dela"]["hops_site"]["port"]      = node["hopsworks"]["port"]
-default["hopsworks"]["dela"]["hops_site"]["base_uri"]  = "http://#{node["hopsworks"]["dela"]["hops_site"]["domain"]}:#{node["hopsworks"]["dela"]["hops_site"]["port"]}/hops-site/webresources"
+default["hopsworks"]["dela"]["hops_site"]["domain"]    = "hops.site"
+default["hopsworks"]["dela"]["hops_site"]["port"]      = "50081"
+default["hopsworks"]["dela"]["hops_site"]["base_uri"]  = "https://" + node["hopsworks"]["dela"]["hops_site"]["domain"] + ":" + node["hopsworks"]["dela"]["hops_site"]["port"]  + "/hops-site/api"
+
+#
+# hops.site settings for cert signing
+#
+default["hopssite"]["url"]                             = "https://" + node["hopsworks"]["dela"]["hops_site"]["domain"] + ":" + node["hopsworks"]["port"]
+default["hopssite"]["user"]                            = "agent@hops.io"
+default["hopssite"]["password"]                        = "admin"
+default["hopssite"]["base_dir"]                        = node["hopsworks"]["domains_dir"] + "/domain1"
+default["hopssite"]["certs_dir"]                       = "#{node["hopsworks"]["dir"]}/certs-dir/hops-site-certs"
+default["hopssite"]["keystore_dir"]                    = "#{node["hopssite"]["certs_dir"]}/keystores"
+
+default["hopssite"]["retry_interval"]                  = 60
+default["hopssite"]["max_retries"]                     = 5
 #
 
 default["hopsworks"]["max_gpu_request_size"]           = 1

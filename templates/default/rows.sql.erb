@@ -203,11 +203,15 @@ INSERT INTO variables VALUES ("dela_cluster_http_port","<%= @dela_cluster_http_p
 
 INSERT INTO variables VALUES ("dela_hopsworks_public_port","<%= @dela_hopsworks_public_port %>");
 
+INSERT INTO variables VALUES ("dela_enabled","<%= @dela_enabled %>");
+
 -- dela old
 
 INSERT INTO variables VALUES ("hopsworks_certificate","<%= node["hopsworks"]["dela"]["certificate"] %>");
 
 INSERT INTO variables VALUES ("hops_site_endpoint","<%= node["hopsworks"]["dela"]["hops_site"]["base_uri"] %>");
+
+INSERT INTO variables VALUES ("hops_site_host","<%= node["hopsworks"]["dela"]["hops_site"]["domain"] %>");
 
 --
 
