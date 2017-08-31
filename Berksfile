@@ -4,32 +4,32 @@ source 'https://supermarket.chef.io'
 
 cookbook 'java'
 
-cookbook 'conda', github: "AlexHopsworks/conda-chef", branch: "local"
-cookbook 'kagent', github: "AlexHopsworks/kagent-chef", branch: "local"
-cookbook 'hops', github: "AlexHopsworks/hops-hadoop-chef", branch: "local"
-cookbook 'ndb', github: "AlexHopsworks/ndb-chef", branch: "local"
-cookbook 'hadoop_spark', github: "AlexHopsworks/spark-chef", branch: "local"
-cookbook 'flink', github: "AlexHopsworks/flink-chef", branch: "local"
-cookbook 'zeppelin', github: "AlexHopsworks/zeppelin-chef", branch: "local"
-cookbook 'livy', github: "AlexHopsworks/livy-chef", branch: "local"
-cookbook 'drelephant', github: "AlexHopsworks/dr-elephant-chef", branch: "local"
-cookbook 'tensorflow', github: "AlexHopsworks/tensorflow-chef", branch: "local"
-cookbook 'epipe', github: "AlexHopsworks/epipe-chef", branch: "local"
-cookbook 'adam', github: "AlexHopsworks/adam-chef", branch: "local"
-cookbook 'dela', github: "hopshadoop/dela-chef", branch: "local"
+cookbook 'conda', github: "AlexHopsworks/conda-chef", branch: "vdcurrent"
+cookbook 'kagent', github: "AlexHopsworks/kagent-chef", branch: "vdcurrent"
+cookbook 'hops', github: "AlexHopsworks/hops-hadoop-chef", branch: "vdcurrent"
+cookbook 'ndb', github: "AlexHopsworks/ndb-chef", branch: "vdcurrent"
+cookbook 'hadoop_spark', github: "AlexHopsworks/spark-chef", branch: "vdcurrent"
+cookbook 'flink', github: "AlexHopsworks/flink-chef", branch: "vdcurrent"
+cookbook 'zeppelin', github: "AlexHopsworks/zeppelin-chef", branch: "vdcurrent"
+cookbook 'livy', github: "AlexHopsworks/livy-chef", branch: "vdcurrent"
+cookbook 'drelephant', github: "AlexHopsworks/dr-elephant-chef", branch: "vdcurrent"
+cookbook 'tensorflow', github: "AlexHopsworks/tensorflow-chef", branch: "vdcurrent"
+cookbook 'epipe', github: "AlexHopsworks/epipe-chef", branch: "vdcurrent"
+cookbook 'adam', github: "AlexHopsworks/adam-chef", branch: "vdcurrent"
+cookbook 'dela', github: "hopshadoop/dela-chef", branch: "vdcurrent"
 
-cookbook 'kzookeeper', github: "AlexHopsworks/kzookeeper", branch: "local"
-cookbook 'kkafka', github: "AlexHopsworks/kafka-cookbook", branch: "local"
-cookbook 'elastic', github: "AlexHopsworks/elasticsearch-chef", branch: "local"
+cookbook 'kzookeeper', github: "AlexHopsworks/kzookeeper", branch: "vdcurrent"
+cookbook 'kkafka', github: "AlexHopsworks/kafka-cookbook", branch: "vdcurrent"
+cookbook 'elastic', github: "AlexHopsworks/elasticsearch-chef", branch: "vdcurrent"
 
-cookbook 'hopslog', github: "AlexHopsworks/hopslog-chef", branch: "local"
-cookbook 'hopsmonitor', github: "AlexHopsworks/hopsmonitor-chef", branch: "local"
+cookbook 'hopslog', github: "AlexHopsworks/hopslog-chef", branch: "vdcurrent"
+cookbook 'hopsmonitor', github: "AlexHopsworks/hopsmonitor-chef", branch: "vdcurrent"
 
 
 cookbook 'graphite', '~> 1.0.4'
 cookbook 'simple-logstash', '~> 0.2.4'
 
-cookbook 'glassfish', github: "AlexHopsworks/chef-glassfish", branch: "local"
+cookbook 'glassfish', github: "AlexHopsworks/chef-glassfish", branch: "vdcurrent"
 
 
 cookbook 'elasticsearch', '~> 2.4.0'
@@ -44,7 +44,7 @@ cookbook 'sysctl', '~> 0.10.0'
 
 
 group :test do
-  cookbook 'karamel', github: "AlexHopsworks/karamel-chef_dela", branch: "local"
+  cookbook 'karamel', github: "AlexHopsworks/karamel-chef_dela", branch: "vdcurrent"
   cookbook 'hostsfile', '~> 2.4.5'
 end
 
