@@ -649,7 +649,7 @@ template "#{theDomain}/bin/ca-keystore.sh" do
   })
 end
 
-if node['hopssite']['manual_register'].empty? || node['hopssite']['manual_register'] == false
+if node['hopssite']['manual_register'].empty? || node['hopssite']['manual_register'] == "false"
   hopsworks_certs "sign-ca-with-root-hopssite-ca" do
     action :sign_hopssite
   end
