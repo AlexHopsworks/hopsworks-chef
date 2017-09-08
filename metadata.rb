@@ -1188,7 +1188,7 @@ attribute "kkafka/broker/super/users",
 
 ##
 ##
-## Elastic 
+## Elastic
 ##
 ##
 
@@ -1435,7 +1435,7 @@ attribute "ndb/group",
 attribute "ndb/BackupDataDir",
           :description => "Directory to store mysql cluster backups in",
           :type => 'string'
- 
+
 attribute "mysql/user",
           :description => "User that runs mysql server",
           :required => "required",
@@ -1662,7 +1662,7 @@ attribute "ndb/MaxNoOfConcurrentTransactions",
 
 #
 #
-# Dela
+# Dela  - please do not change without checking dela code
 #
 #
 
@@ -1682,6 +1682,10 @@ attribute "hopsworks/org_country_code",
           :description => "2-Letter Country code for this organization ('us', 'se', 'uk', etc)",
           :type => 'string'
 
+attribute "dela/enabled",
+          :description => "Enable dela services. 'true' (default)",
+          :type => 'string'
+
 attribute "dela/user",
           :description => "Username for the dela services",
           :type => 'string'
@@ -1694,6 +1698,98 @@ attribute "dela/dir",
           :description => "dela Installation directory.",
           :type => 'string'
 
+# Hopsworks Dela
+attribute "hopsworks/dela/cluster_http_port",
+          :description => "Dela cluster accessible http port",
+          :type => 'string'
+
+attribute "hopsworks/dela/public_hopsworks_port",
+          :description => "Hopsworks public http port",
+          :type => 'string'
+
+# Hops site
+
+attribute "hopsworks/dela/hops_site/domain",
+          :description => "Dela hops site public domain",
+          :type => 'string'
+
+attribute "hopsworks/dela/hops_site/port",
+          :description => "Dela hops site port",
+          :type => 'string'
+  
+# Dela Transfer specific
+attribute "dela/log_level",
+          :description => "Default: WARN. Can be INFO or DEBUG or TRACE or ERROR.",
+          :type => "string"
+
+attribute "dela/id",
+          :description => "id for the dela instance. Randomly generated, but can be ovverriden here.",
+          :type => "string"
+
+attribute "dela/seed",
+          :description => "seed for the dela instance. Randomly generated, but can be ovverriden here.",
+          :type => "string"
+
+attribute "dela/stun_port1",
+          :description => "1st Client port used by stun client in Dela.",
+          :type => "string"
+
+attribute "dela/stun_port2",
+          :description => "2nd Client port used by stun client in Dela.",
+          :type => "string"
+
+attribute "dela/port",
+         :description => "Dela Client application port.",
+         :type => "string"
+
+attribute "dela/stun_client_port2",
+          :description => "2nd Client port used by stun client in Dela.",
+          :type => "string"
+
+attribute "dela/port",
+          :description => "Dela Client application port.",
+          :type => "string"
+
+attribute "dela/http_port",
+          :description => "Dela Client http port.",
+         :type => "string"
+
+attribute "dela/stun_servers_ip",
+          :description => "Dela Client stun connections(ips).",
+          :type => "array"
+
+attribute "dela/stun_servers_id",
+          :description => "Dela Client stun connections(ids).",
+          :type => "array"
+
+attribute "dela/hops/storage/type",
+          :description => "Dela Client storage type(HDFS/DISK).",
+          :type => "string"
+          
+attribute "dela/hops/library/type",
+          :description => "Dela Client library type(MYSQL/DISK).",
+          :type => "string"
+
+##### Dela
+attribute "dela/mysql/ip",
+          :description => "Mysql server ip",
+          :type => 'string',
+          :required => "required"
+
+attribute "dela/mysql/port",
+          :description => "MySql server port",
+          :type => 'string',
+          :required => "required"
+
+attribute "mysql/user",
+          :description => "Mysql server username",
+          :type => 'string',
+          :required => "required"
+
+attribute "mysql/password",
+          :description => "MySql server password",
+          :type => 'string',
+          :required => "required"
 
 
 #
@@ -1729,9 +1825,12 @@ attribute "smtp/email_password",
 #
 # hops.site settings
 #
+attribute "hopssite/manual_register",
+          :description => "Manually register with www.hops.site if set true. 'false' (default)",
+          :type => 'string'
 
 attribute "hopssite/url",
-          :description => "Url to the global Hops Certificate Authority",
+          :description => "Url to the global Hops Certificate Authority.",
           :type => 'string'
 
 attribute "hopssite/user",
@@ -1740,5 +1839,13 @@ attribute "hopssite/user",
 
 attribute "hopssite/password",
           :description => "Password for the registered username at www.hops.site.",
+          :type => 'string'
+
+attribute "hopssite/retry_interval",
+          :description => "Certificate signing request retry interval for hops.site.",
+          :type => 'string'
+
+attribute "hopssite/max_retries",
+          :description => "Certificate signing request maximum number of retries for hops.site.",
           :type => 'string'
 

@@ -50,17 +50,9 @@ default["hopsworks"]["war_url"]                  = "#{node["download_url"]}/hops
 default["hopsworks"]["ca_url"]                   = "#{node["download_url"]}/hopsworks/#{node["hopsworks"]["version"]}/hopsworks-ca.war"
 default["hopsworks"]["ear_url"]                  = "#{node["download_url"]}/hopsworks/#{node["hopsworks"]["version"]}/hopsworks-ear.ear"
 
-#
-# hops.site settings
-#
-default["hopssite"]["url"]                       = "https://www.hops.site"
-default["hopssite"]["user"]                      = "agent@hops.io"
-default["hopssite"]["password"]                  = "admin"
-
-
-default["hopsworks"]["admin"]["user"]               = "adminuser"
-default["hopsworks"]["admin"]["password"]           = "adminpw"
-default["glassfish"]["cert"]["password"]            = "#{node["hopsworks"]["admin"]["password"]}"
+default["hopsworks"]["admin"]["user"]            = "adminuser"
+default["hopsworks"]["admin"]["password"]        = "adminpw"
+default["glassfish"]["cert"]["password"]         = "#{node["hopsworks"]["admin"]["password"]}"
 default["hopsworks"]["twofactor_auth"]           = "false"
 default["hopsworks"]["twofactor_exclude_groups"] = "AGENT" #semicolon separated list of roles
 ## Suffix can be: (defaults to minutes if omitted)
@@ -93,7 +85,7 @@ default["hopsworks"]["smtp_port"]                = node["smtp"]["port"]
 default["hopsworks"]["smtp_ssl_port"]            = node["smtp"]["ssl_port"]
 default["hopsworks"]["email"]                    = node["smtp"]["email"]
 default["hopsworks"]["email_password"]           = node["smtp"]["email_password"]
-default["hopsworks"]["gmail"]["placeholder"]        = "http://snurran.sics.se/hops/hopsworks.email"
+default["hopsworks"]["gmail"]["placeholder"]     = "http://snurran.sics.se/hops/hopsworks.email"
 
 # #quotas
 default["hopsworks"]["yarn_default_quota_mins"]  = "10000"
@@ -113,24 +105,49 @@ default["hopsworks"]["kafka_num_replicas"]       = "1"
 default["hopsworks"]["kafka_num_partitions"]     = "1"
 
 default["glassfish"]["ciphersuite"]				= "+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,+TLS_RSA_WITH_AES_128_CBC_SHA256,+TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,+TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,+TLS_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA,+TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,+TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA,+TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA"
-
 default["hopsworks"]["monitor_max_status_poll_try"] = "5"
 
+
 #
-# Dela
+# Dela  - please do not change without consulting dela code
+#
+default["hopsworks"]["dela"]["enabled"]                = "true"
+default["hopsworks"]["dela"]["cluster_http_port"]      = "8080"
+default["hopsworks"]["dela"]["public_hopsworks_port"]  = "8080"
+
+default["hopsworks"]["dela"]["certificate"]            = "DummyCert25100"
+
+#
+# Hops-site 
+#
+default["hopsworks"]["dela"]["hops_site"]["domain"]    = "hops.site"
+default["hopsworks"]["dela"]["hops_site"]["port"]      = "50081"
+default["hopsworks"]["dela"]["hops_site"]["base_uri"]  = "https://" + node["hopsworks"]["dela"]["hops_site"]["domain"] + ":" + node["hopsworks"]["dela"]["hops_site"]["port"]  + "/hops-site/api"
+
+#
+# hops.site settings for cert signing
+#
+default["hopssite"]["manual_register"]                 = "false"
+default["hopssite"]["url"]                             = "https://" + node["hopsworks"]["dela"]["hops_site"]["domain"] + ":" + node["hopsworks"]["port"]
+default["hopssite"]["user"]                            = "agent@hops.io"
+default["hopssite"]["password"]                        = "admin"
+default["hopssite"]["base_dir"]                        = node["hopsworks"]["domains_dir"] + "/domain1"
+default["hopssite"]["certs_dir"]                       = "#{node["hopsworks"]["dir"]}/certs-dir/hops-site-certs"
+default["hopssite"]["keystore_dir"]                    = "#{node["hopssite"]["certs_dir"]}/keystores"
+
+default["hopssite"]["retry_interval"]                  = 60
+default["hopssite"]["max_retries"]                     = 5
+
+#
+# Dela 
 #
 
 default["hopsworks"]["org_name"]                       = "hopsworks"
 default["hopsworks"]["org_domain"]                     = "www.hops.io"
-default["hopsworks"]["org_email"]                      = "user@hops.site"
+default["hopsworks"]["org_email"]                      = node["hopsworks"]["email"]
 default["hopsworks"]["org_country_code"]               = "SE"
 default["hopsworks"]["org_city"]                       = "Stockholm"
-
-
-default["hopsworks"]["dela"]["domain"]                 = "bbc1.sics.se"
-default["hopsworks"]["dela"]["certifcate"]             = "DummyCert25100"
-default["hopsworks"]["dela"]["hops_site_base_uri"]     = "http://bbc1.sics.se:25100/hops-site/webresources"
-default["hopsworks"]["dela"]["public_search_endpoint"] =  "hopsworks/api/elastic/publicdatasets/"
+#
 
 default["hopsworks"]["max_gpu_request_size"]           = 1
 default["hopsworks"]["max_cpu_request_size"]           = 1
