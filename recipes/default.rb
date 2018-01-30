@@ -3,7 +3,6 @@ domain_name="domain1"
 domains_dir = node['hopsworks']['domains_dir']
 theDomain="#{domains_dir}/#{domain_name}"
 
-
 case node['platform']
 when "ubuntu"
  if node['platform_version'].to_f <= 14.04
@@ -16,7 +15,6 @@ if node['hopsworks']['systemd'] === "true"
 else
   systemd = false
 end
-
 
 include_recipe "java"
 
@@ -171,43 +169,15 @@ if node['hopsworks']['user'] == "vagrant"
   vagrant_enabled = 1
 end
 
-tables_path = "#{domains_dir}/tables.sql"
-views_path = "#{domains_dir}/views.sql"
-rows_path = "#{domains_dir}/rows.sql"
+db="hopsworks"
+exec = "#{node['ndb']['scripts_dir']}/mysql-client.sh"
 
-hopsworks_grants "hopsworks_tables" do
-  tables_path  "#{tables_path}"
-  views_path  "#{views_path}"
-  rows_path  "#{rows_path}"
-  action :nothing
-end
-
-template views_path do
-  source File.basename("#{views_path}") + ".erb"
-  owner node['glassfish']['user']
-  mode 0750
-  action :create
-  variables({
-               :private_ip => private_ip
-              })
-end
-
-# Need to delete the sql file so that the action is triggered
-file tables_path do
-  action :delete
-  ignore_failure true
-end
-
-Chef::Log.info("Could not find previously defined #{tables_path} resource")
-template tables_path do
-  source File.basename("#{tables_path}") + ".erb"
-  owner node['glassfish']['user']
-  mode 0750
-  action :create
-  variables({
-                :private_ip => private_ip
-              })
-    notifies :create_tables, 'hopsworks_grants[hopsworks_tables]', :immediately
+bash 'create_hopsworks_db' do
+  user "root"
+  code <<-EOF
+      set -e
+      #{exec} -e \"CREATE DATABASE IF NOT EXISTS hopsworks CHARACTER SET latin1\"
+    EOF
 end
 
 timerTable = "ejbtimer_mysql.sql"
@@ -263,11 +233,27 @@ if node['hops']['rpc']['ssl'].eql? "true"
   hops_rpc_tls_val = "true"
 end
 
-template "#{rows_path}" do
-   source File.basename("#{rows_path}") + ".erb"
-   owner node['glassfish']['user']
-   mode 0755
-   action :create
+hdfs_ui_port = node['hops']['nn']['http_port']
+if node['hops']['rpc']['ssl'].eql? "true"
+  hdfs_ui_port = node['hops']['dfs']['https']['port']
+end
+
+versions = node['hopsworks']['versions'].split(/\s*,\s*/)
+previous_version=""
+if versions.any?
+   previous_version=versions.last
+end
+
+myVersion = node['hopsworks']['version']
+flyway_version = myVersion.sub("-SNAPSHOT", "")
+versions.push(flyway_version)
+
+for version in versions do
+
+  template "#{theDomain}/flyway/sql/V#{version}__hopsworks.sql" do
+    source "sql/#{version}.sql.erb"
+    owner node['glassfish']['user']
+    mode 0750
     variables({
                 :hosts => hosts,
                 :epipe_ip => epipe_ip,
@@ -287,7 +273,7 @@ template "#{rows_path}" do
                 :yarn_ui_ip => public_recipe_ip("hops","rm"),
                 :yarn_ui_port => node['hops']['rm']['http_port'],
                 :hdfs_ui_ip => public_recipe_ip("hops","nn"),
-                :hdfs_ui_port => node['hops']['nn']['http_port'],
+                :hdfs_ui_port => hdfs_ui_port,
                 :hopsworks_user => node['hopsworks']['user'],
                 :hdfs_user => node['hops']['hdfs']['user'],
                 :mr_user => node['hops']['mr']['user'],
@@ -349,9 +335,24 @@ template "#{rows_path}" do
                 :hive_warehouse => "#{node['hive2']['hopsfs_dir']}/warehouse",
                 :hive_scratchdir => node['hive2']['scratch_dir']
            })
-   notifies :insert_rows, 'hopsworks_grants[hopsworks_tables]', :immediately
-end
+    action :create_if_missing    
+  end
 
+  #
+  # Delete the undo file for the previous version - not rolling back more than 1 version
+  #
+  #file "#{theDomain}/flyway/undo/U#{previous_version}__undo.sql" do
+  #  action :delete
+  #end
+  
+  template "#{theDomain}/flyway/undo/U#{version}__undo.sql" do
+    source "sql/undo/#{version}__undo.sql.erb"
+    owner node['glassfish']['user']
+    mode 0750
+    action :create_if_missing
+  end
+
+end
 
 
 ###############################################################################
@@ -406,6 +407,29 @@ hopsworks_grants "reload_sysv" do
 end
 
 
+# if node['install']['upgrade'] == "true" 
+# end
+
+
+bash "flyway_baseline" do
+  user "root"
+  code <<-EOF
+    set -e
+    cd #{theDomain}/flyway
+    #{theDomain}/flyway/flyway baseline
+  EOF
+ not_if "#{node['ndb']['scripts_dir']}/mysql-client.sh hopsworks -e 'show tables' | grep flyway_schema_history"  
+end
+
+bash "flyway_migrate" do
+  user "root"
+  code <<-EOF
+    set -e
+    cd #{theDomain}/flyway
+    #{theDomain}/flyway/flyway migrate
+  EOF
+end
+
 glassfish_secure_admin domain_name do
   domain_name domain_name
   password_file "#{domains_dir}/#{domain_name}_admin_passwd"
@@ -414,10 +438,6 @@ glassfish_secure_admin domain_name do
   secure false
   action :enable
 end
-
-
-#end
-
 
 
 props =  {
@@ -519,24 +539,6 @@ glassfish_asadmin "set server.network-config.protocols.protocol.sec-admin-listen
    secure false
 end
 
-# Disable SSLv3 on iiop-listener.ssl
-#glassfish_asadmin "set server.iiop-service.iiop-listener.SSL.ssl.ssl3-enabled=false" do
-#   domain_name domain_name
-#   password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-#   username username
-#   admin_port admin_port
-#   secure false
-#end
-
-# Disable SSLv3 on iiop-muth_listener.ssl
-#glassfish_asadmin "set server.iiop-service.iiop-listener.SSL_MUTUALAUTH.ssl.ssl3-enabled=false" do
-#   domain_name domain_name
-#   password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-#   username username
-#   admin_port admin_port
-#   secure false
-#end
-
 # Restrict ciphersuite
 glassfish_asadmin "set configs.config.server-config.network-config.protocols.protocol.http-listener-2.ssl.ssl3-tls-ciphers=#{node['glassfish']['ciphersuite']}" do
    domain_name domain_name
@@ -554,16 +556,6 @@ glassfish_asadmin "set configs.config.server-config.network-config.protocols.pro
    admin_port admin_port
    secure false
 end
-
-# Restrict ciphersuite
-# glassfish_asadmin "set configs.config.server-config.iiop-service.iiop-listener.SSL_MUTUALAUTH.ssl.ssl3-tls-ciphers=#{node['glassfish']['ciphersuite']}" do
-#    domain_name domain_name
-#    password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-#    username username
-#    admin_port admin_port
-#    secure false
-# end
-
 
 # Needed by Shibboleth
 glassfish_asadmin "create-network-listener --protocol http-listener-1 --listenerport 8009 --jkenabled true jk-connector" do
@@ -596,15 +588,6 @@ glassfish_asadmin "set server-config.http-service.virtual-server.server.property
    admin_port admin_port
    secure false
 end
-
-# glassfish_asadmin "set default-config.http-service.virtual-server.server.property.sso-enabled='true'" do
-#    domain_name domain_name
-#    password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-#    username username
-#    admin_port admin_port
-#    secure false
-# end
-
 
 # glassfish_asadmin "set cluster.availability-service.web-container-availability.sso-failover-enabled=true" do
 #    domain_name domain_name
@@ -680,6 +663,31 @@ glassfish_asadmin "create-managed-executor-service --enabled=true --longrunningt
   not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-managed-executor-services | grep 'kagent'"
 end
 
+if node['ldap']['enabled'].eql? "true"
+  ldap_jndilookupname= node['ldap']['jndilookupname']
+  ldap_jndilookupname=ldap_jndilookupname.gsub('=', '\\\\=').gsub(',', '\\\\,')
+  ldap_provider_url=node['ldap']['provider_url']
+  ldap_provider_url=ldap_provider_url.gsub(':', '\\\\\:').gsub('.', '\\\\.')
+  ldap_attr_binary=node['ldap']['attr_binary_val']
+  ldap_sec_auth=node['ldap']['security_auth']
+  ldap_security_auth=ldap_sec_auth.to_s.empty? ? "" : ":SECURITY_AUTHENTICATION=#{ldap_sec_auth}"
+  ldap_sec_principal=node['ldap']['security_principal']
+  ldap_security_principal=ldap_sec_principal.to_s.empty? ? "" : ":SECURITY_PRINCIPAL=#{ldap_sec_principal}"
+  ldap_sec_credentials=node['ldap']['security_credentials']
+  ldap_security_credentials=ldap_sec_credentials.to_s.empty? ? "" : ":SECURITY_CREDENTIALS=#{ldap_sec_credentials}"
+  ldap_ref=node['ldap']['referral']
+  ldap_referral=ldap_ref.to_s.empty? ? "" : ":REFERRAL=#{ldap_ref}"
+  ldap_props=node['ldap']['additional_props']
+  ldap_properties=ldap_props.to_s.empty? ? "" : ":#{ldap_props}"
+
+  glassfish_asadmin "create-jndi-resource --restype javax.naming.ldap.LdapContext --factoryclass com.sun.jndi.ldap.LdapCtxFactory --jndilookupname #{ldap_jndilookupname} --property java.naming.provider.url=#{ldap_provider_url}:java.naming.ldap.attributes.binary=#{ldap_attr_binary}#{ldap_security_auth}#{ldap_security_principal}#{ldap_security_credentials}#{ldap_referral}#{ldap_properties} ldap/LdapResource" do
+     domain_name domain_name
+     password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+     username username
+     admin_port admin_port
+     secure false
+  end
+end
 
 if node['hopsworks']['http_logs']['enabled'].eql? "true"
   # Enable http logging
@@ -732,7 +740,7 @@ if node['hopsworks']['http_logs']['enabled'].eql? "true"
    admin_port admin_port
    secure false
   end
-  
+
   # Setup cron job for HDFS dumper
   cron 'dump_http_logs_to_hdfs' do
     if node['hopsworks']['systemd'] == "true"
@@ -807,7 +815,6 @@ if node['hopsworks']['email_password'].eql? "password"
 end
 
 
-
 hopsworks_mail "gmail" do
    domain_name domain_name
    password_file "#{domains_dir}/#{domain_name}_admin_passwd"
@@ -820,8 +827,9 @@ end
 
 node.override['glassfish']['asadmin']['timeout'] = 400
 
+
 glassfish_deployable "hopsworks-ear" do
-  component_name "hopsworks-ear"
+  component_name "hopsworks-ear:#{node['hopsworks']['version']}"
   target "server"
   url node['hopsworks']['ear_url']
   version node['hopsworks']['version']
@@ -833,14 +841,14 @@ glassfish_deployable "hopsworks-ear" do
   action :deploy
   async_replication false
   retries 1
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb | grep -w 'hopsworks-ear'"
+  keep_state true
+  enabled true
+  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
 end
 
 
-
-
 glassfish_deployable "hopsworks" do
-  component_name "hopsworks-web"
+  component_name "hopsworks-web:#{node['hopsworks']['version']}"
   target "server"
   url node['hopsworks']['war_url']
   version node['hopsworks']['version']
@@ -852,16 +860,19 @@ glassfish_deployable "hopsworks" do
   secure false
   action :deploy
   async_replication false
-  retries 1
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb | grep -v hopsworks-ear | grep hopsworks"
+  retries 1  
+  keep_state true
+  enabled true
+  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type web | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\""
 end
 
 
 glassfish_deployable "hopsworks-ca" do
-  component_name "hopsworks-ca"
+  component_name "hopsworks-ca:#{node['hopsworks']['version']}"
   target "server"
   url node['hopsworks']['ca_url']
   version node['hopsworks']['version']
+  context_root "/hopsworks-ca"  
   domain_name domain_name
   password_file "#{domains_dir}/#{domain_name}_admin_passwd"
   username username
@@ -870,8 +881,50 @@ glassfish_deployable "hopsworks-ca" do
   action :deploy
   async_replication false
   retries 1
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb | grep -w hopsworks-ca"
+  keep_state true
+  enabled true
+  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
+
+
+#
+# If deployment of the new version succeeds, then undeploy the previous version
+#
+
+glassfish_deployable "undeploy_hopsworks-ear" do
+  component_name "hopsworks-ear:#{previous_version}"
+  target "server"
+  domain_name domain_name
+  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+  username username
+  admin_port admin_port
+  secure true
+  action :undeploy
+end
+
+glassfish_deployable "undeploy_hopsworks-war" do
+  component_name "hopsworks-web:#{previous_version}"
+  target "server"
+  domain_name domain_name
+  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+  username username
+  admin_port admin_port
+  secure true
+  action :undeploy
+end
+
+glassfish_deployable "undeploy_hopsworks-ca" do
+  component_name "hopsworks-ca:#{previous_version}"
+  target "server"
+  domain_name domain_name
+  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+  username username
+  admin_port admin_port
+  secure true
+  action :undeploy
+end
+
+
 
 template "/bin/hopsworks-2fa" do
     source "hopsworks-2fa.erb"
@@ -1260,3 +1313,6 @@ template "#{theDomain}/docroot/nbextensions/facets-dist/facets-jupyter.html" do
   mode 0775
   action :create
 end
+
+include_recipe "tensorflow::serving"
+

@@ -23,7 +23,7 @@ bash "systemd_reload_for_glassfish_failures" do
 end
 
 
-if node['hopsworks']['systemd'] === "true"
+if node['hopsworks']['systemd'] == "true"
   systemd = true
 else
   systemd = false
@@ -37,6 +37,11 @@ end
 group node['jupyter']['group'] do
   action :create
   not_if "getent group #{node['jupyter']['group']}"
+end
+
+group node['tfserving']['group'] do
+  action :create
+  not_if "getent group #{node['tfserving']['group']}"
 end
 
 #
@@ -62,6 +67,13 @@ group node['jupyter']['group'] do
   append true
 end
 
+group node['tfserving']['group'] do
+  action :modify
+  members ["#{node['hopsworks']['user']}"]
+  append true
+end
+
+
 # Add to the hdfs superuser group
 group node['hops']['hdfs']['user'] do
   action :modify
@@ -80,7 +92,7 @@ end
 
 group node['kagent']['certs_group'] do
   action :modify
-  members ["#{node['hopsworks']['user']}", "#{node['jupyter']['user']}"]
+  members ["#{node['hopsworks']['user']}"]
   append true
 end
 
@@ -132,7 +144,7 @@ when "rhel"
   remote_file "#{Chef::Config['file_cache_path']}/dtrx.tar.gz" do
     user node['glassfish']['user']
     group node['glassfish']['group']
-    source "http://brettcsmith.org/2007/dtrx/dtrx-7.1.tar.gz"
+    source node['download_url'] + "/dtrx-7.1.tar.gz"
     mode 0755
     action :create
   end
@@ -149,10 +161,6 @@ when "rhel"
     not_if "which dtrx"
   end
 end
-
-
-
-
 
 
 
@@ -327,13 +335,17 @@ cookbook_file"#{theDomain}/docroot/obama-smoked-us.gif" do
 end
 
 
-# if node['glassfish']['port'] == 80
-#   authbind_port "AuthBind GlassFish Port 80" do
-#     port 80
-#     user node['glassfish']['user']
-#   end
-# end
+case node['platform']
+ when 'debian', 'ubuntu'
+ if node['glassfish']['port'] == 80
+   authbind_port "AuthBind GlassFish Port 80" do
+     port 80
+     user node['glassfish']['user']
+   end
+ end
+end
 
+include_recipe "hopsworks::authbind"
 
 case node['platform']
 when "rhel"
@@ -544,6 +556,59 @@ template "#{theDomain}/bin/jupyter-launch.sh" do
   action :create
 end
 
+template "#{theDomain}/bin/tfserving.sh" do
+  source "tfserving.sh.erb"
+  owner node['glassfish']['user']
+  group node['tfserving']['group']
+  mode "550"
+  action :create
+end
+
+template "#{theDomain}/bin/tfserving-kill.sh" do
+  source "tfserving-kill.sh.erb"
+  owner node['glassfish']['user']
+  group node['tfserving']['group']
+  mode "550"
+  action :create
+end
+
+template "#{theDomain}/bin/tfserving-kill.sh" do
+  source "tfserving-kill.sh.erb"
+  owner node['glassfish']['user']
+  group node['tfserving']['group']
+  mode "550"
+  action :create
+end
+
+template "#{theDomain}/bin/anaconda-prepare.sh" do
+  source "anaconda-prepare.sh.erb"
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  mode "550"
+  action :create
+end
+
+
+command=""
+case node['platform']
+ when 'debian', 'ubuntu'
+   command='tensorflow_model_server'
+ when 'redhat', 'centos', 'fedora'
+   command='/opt/serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server'
+end
+
+
+template "#{theDomain}/bin/tfserving-launch.sh" do
+  source "tfserving-launch.sh.erb"
+  owner node['glassfish']['user']
+  group node['tfserving']['group']
+  mode "550"
+  variables({
+     :command => command
+  })
+  action :create
+end
+
 template "#{theDomain}/bin/unzip-hdfs-files.sh" do
   source "unzip-hdfs-files.sh.erb"
   owner node['glassfish']['user']
@@ -610,11 +675,13 @@ template "/etc/sudoers.d/glassfish" do
               :delete_projectcert =>  "#{ca_dir}/intermediate/deleteprojectcerts.sh",
               :ndb_backup =>  "#{theDomain}/bin/ndb_backup.sh",
               :jupyter =>  "#{theDomain}/bin/jupyter.sh",
+              :tfserving =>  "#{theDomain}/bin/tfserving.sh",              
               :jupyter_cleanup =>  "#{theDomain}/bin/jupyter-project-cleanup.sh",
               :jupyter_kernel =>  "#{theDomain}/bin/jupyter-install-kernel.sh",
               :global_ca_sign =>  "#{theDomain}/bin/global-ca-sign-csr.sh",
               :ca_keystore => "#{theDomain}/bin/ca-keystore.sh",
               :hive_user => node['hive2']['user'],
+              :anaconda_prepare => "#{theDomain}/bin/anaconda-prepare.sh",
               :start_llap => "#{theDomain}/bin/start-llap.sh"
             })
   action :create
@@ -717,3 +784,60 @@ if node['hopsworks']['dela']['enabled'] == "true"
     end
   end
 end
+
+
+flyway_tgz = File.basename(node['hopsworks']['flyway_url'])
+flyway =  "flyway-" + node['hopsworks']['flyway']['version']
+
+remote_file "#{Chef::Config['file_cache_path']}/#{flyway_tgz}" do
+  user node['glassfish']['user']
+  group node['glassfish']['group']
+  source node['hopsworks']['flyway_url']
+  mode 0755
+  action :create
+end
+
+bash "unpack_flyway" do
+  user "root"
+  code <<-EOF
+    set -e
+    cd #{Chef::Config['file_cache_path']}
+    tar -xzf #{flyway_tgz}
+    mv #{flyway} #{theDomain}
+    cd #{theDomain}
+    chown -R #{node['glassfish']['user']} flyway*
+    rm -rf flyway
+    ln -s #{flyway} flyway
+  EOF
+  not_if { ::File.exists?("#{theDomain}/flyway/flyway") }
+end
+
+# file "#{theDomain}/flyway/conf/flyway.conf" do
+#   owner "root"
+#   action :delete
+# end
+
+template "#{theDomain}/flyway/conf/flyway.conf" do
+  source "flyway.conf.erb"
+  owner node['glassfish']['user']
+  mode 0750
+  variables({
+              :mysql_host => mysql_host
+            })
+  action :create  
+end
+
+
+directory "#{theDomain}/flyway/undo" do
+  owner node['glassfish']['user']
+  mode "770"
+  action :create
+end
+
+template "#{theDomain}/flyway/sql/V0.0.2__initial_tables.sql" do
+  source "sql/0.0.2__initial_tables.sql.erb"
+  owner node['glassfish']['user']
+  mode 0750
+  action :create_if_missing
+end
+

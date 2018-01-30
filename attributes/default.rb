@@ -1,3 +1,4 @@
+include_attribute "conda"
 include_attribute "kagent"
 include_attribute "ndb"
 include_attribute "hadoop_spark"
@@ -9,11 +10,14 @@ include_attribute "kkafka"
 include_attribute "kzookeeper"
 include_attribute "drelephant"
 include_attribute "dela"
-include_attribute "conda"
 include_attribute "hive2"
 
-default['hopsworks']['version']                  = "0.1.0"
+default['hopsworks']['version']                  = "0.2.0-SNAPSHOT"
 
+# Flyway needs to know the previous versions of Hopsworks to generate the .sql files.
+# comma-separated string of previous versions hopsworks (not including the current version)
+# E.g., "0.1.1, 0.1.2"
+default['hopsworks']['versions']                 = "0.1.0"
 
 default['glassfish']['variant']                  = "payara"
 default['hopsworks']['user']                     = node['install']['user'].empty? ? "glassfish" : node['install']['user']
@@ -24,7 +28,7 @@ default['hopsworks']['admin']['port']            = 4848
 default['hopsworks']['port']                     = "8080"
 default['glassfish']['admin']['port']            = node['hopsworks']['admin']['port']
 default['glassfish']['port']                     = node['hopsworks']['port'].to_i
-default['glassfish']['version']                  = '4.1.2.173'
+default['glassfish']['version']                  = '4.1.2.174'
 
 default['hopsworks']['dir']                      = node['install']['dir'].empty? ? "/usr/local" : node['install']['dir']
 default['glassfish']['install_dir']              = node['hopsworks']['dir']
@@ -51,7 +55,7 @@ default['hopsworks']['http_logs']['enabled']     = "true"
 
 default['glassfish']['package_url']              = node['download_url'] + "/payara-#{node['glassfish']['version']}.zip"
 default['hopsworks']['cauth_url']                = "#{node['download_url']}/otp-auth-2.0.jar"
-default['hopsworks']['war_url']                  = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks.war"
+default['hopsworks']['war_url']                  = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-web.war"
 default['hopsworks']['ca_url']                   = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-ca.war"
 default['hopsworks']['ear_url']                  = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-ear.ear"
 
@@ -138,7 +142,7 @@ default['hopsworks']['dela']['public_hopsworks_port']  = node['hopsworks']['port
 default['hopsworks']['dela']['cluster_http_port']      = 42000 #TODO - fix to read from dela recipe
 # Dela - hopssite settings
 default['hopsworks']['hopssite']['version']            = "none" # default for {hops, bbc5}
-if(node['hopsworks']['hopssite']['version'].eql? "none") 
+if(node['hopsworks']['hopssite']['version'].eql? "none")
   default['hopsworks']['dela']['enabled']              = "false"
   default['hopsworks']['dela']['client']               = "FULL_CLIENT"
   default['hopsworks']['hopssite']['domain']           = "hops.site"
@@ -211,9 +215,69 @@ default['jupyter']['user']                             = node['install']['user']
 default['jupyter']['group']                            = node['install']['user'].empty? ? "jupyter" : node['install']['user']
 default['jupyter']['python']                           = "true"
 
+
+#
+# TensorFlow Serving
+#
+
+default['tfserving']['user']                           = node['install']['user'].empty? ? "tfserving" : node['install']['user']
+default['tfserving']['group']                          = node['install']['user'].empty? ? "tfserving" : node['install']['user']
+
+
 # Livy
 default['hopsworks']['livy_zeppelin_session_timeout']  = "3600"
 
 # Zeppelin
 default['hopsworks']['zeppelin_interpreters']  = "org.apache.zeppelin.livy.LivySparkInterpreter,org.apache.zeppelin.livy.LivyPySparkInterpreter,org.apache.zeppelin.livy.LivySparkRInterpreter,org.apache.zeppelin.livy.LivySparkSQLInterpreter,org.apache.zeppelin.spark.SparkInterpreter,org.apache.zeppelin.spark.PySparkInterpreter,org.apache.zeppelin.rinterpreter.RRepl,org.apache.zeppelin.rinterpreter.KnitR,org.apache.zeppelin.spark.SparkRInterpreter,org.apache.zeppelin.spark.SparkSqlInterpreter,org.apache.zeppelin.spark.DepInterpreter,org.apache.zeppelin.markdown.Markdown,org.apache.zeppelin.angular.AngularInterpreter,org.apache.zeppelin.flink.FlinkInterpreter"
 
+
+#
+# Database upgrades
+#
+# "https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/5.0.3/flyway-commandline-5.0.3-linux-x64.tar.gz"
+default['hopsworks']['flyway']['version']              = "5.0.3"
+default['hopsworks']['flyway_url']                     = node['download_url'] + "/flyway-commandline-#{node['hopsworks']['flyway']['version']}-linux-x64.tar.gz"
+
+
+#
+#
+# Virtulbox Image support
+#
+
+default["lightdm"]["service_name"] = "lightdm"
+default["lightdm"]["sysconfig_file"] = "/etc/sysconfig/displaymanager"
+default["lightdm"]["users_file"] = "/etc/lightdm/users.conf"
+default["lightdm"]["keys_file"] = "/etc/lightdm/keys.conf"
+default["lightdm"]["config_file"] = "/etc/lightdm/lightdm.conf"
+default["lightdm"]["minimum_uid"] = 1000
+default["lightdm"]["hidden_users"] = %w(nobody)
+default["lightdm"]["hidden_shells"] = %w(/bin/false /sbin/nologin)
+default["lightdm"]["keyrings"] = {}
+
+#
+# LDAP
+#
+default['ldap']['enabled']                           = "false"
+default['ldap']['group_mapping']                     = ""
+default['ldap']['user_id']                           = "uid"
+default['ldap']['user_givenName']                    = "givenName"
+default['ldap']['user_surname']                      = "sn"
+default['ldap']['user_email']                        = "mail"
+default['ldap']['user_search_filter']                = "uid=%s"
+default['ldap']['group_search_filter']               = "member=%d"
+default['ldap']['attr_binary']                       = "java.naming.ldap.attributes.binary"
+default['ldap']['group_target']                      = "cn"
+default['ldap']['dyn_group_target']                  = "memberOf"
+default['ldap']['user_dn']                           = ""
+default['ldap']['group_dn']                          = ""
+default['ldap']['account_status']                    = 4
+
+#LDAP External JNDI Resource
+default['ldap']['provider_url']                      = ""
+default['ldap']['jndilookupname']                    = ""
+default['ldap']['attr_binary_val']                   = "entryUUID"
+default['ldap']['security_auth']                     = "none"
+default['ldap']['security_principal']                = ""
+default['ldap']['security_credentials']              = ""
+default['ldap']['referral']                          = "follow"
+default['ldap']['additional_props']                  = ""
