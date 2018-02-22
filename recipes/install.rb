@@ -3,6 +3,8 @@ require 'base64'
 require 'digest'
 
 my_ip = my_private_ip()
+setup_aws()
+
 username=node['hopsworks']['admin']['user']
 password=node['hopsworks']['admin']['password']
 domain_name="domain1"
