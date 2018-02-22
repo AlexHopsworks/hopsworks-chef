@@ -12,12 +12,12 @@ include_attribute "drelephant"
 include_attribute "dela"
 include_attribute "hive2"
 
-default['hopsworks']['version']                  = "0.2.0-SNAPSHOT"
+default['hopsworks']['version']                  = "0.4.0-SNAPSHOT"
 
 # Flyway needs to know the previous versions of Hopsworks to generate the .sql files.
 # comma-separated string of previous versions hopsworks (not including the current version)
 # E.g., "0.1.1, 0.1.2"
-default['hopsworks']['versions']                 = "0.1.0"
+default['hopsworks']['versions']                 = "0.1.0,0.2.0,0.3.0"
 
 default['glassfish']['variant']                  = "payara"
 default['hopsworks']['user']                     = node['install']['user'].empty? ? "glassfish" : node['install']['user']
@@ -26,6 +26,7 @@ default['hopsworks']['group']                    = node['install']['user'].empty
 default['glassfish']['group']                    = node['hopsworks']['group']
 default['hopsworks']['admin']['port']            = 4848
 default['hopsworks']['port']                     = "8080"
+default['hopsworks']['secure_port']              = "8181"
 default['glassfish']['admin']['port']            = node['hopsworks']['admin']['port']
 default['glassfish']['port']                     = node['hopsworks']['port'].to_i
 default['glassfish']['version']                  = '4.1.2.174'
@@ -34,6 +35,7 @@ default['hopsworks']['dir']                      = node['install']['dir'].empty?
 default['glassfish']['install_dir']              = node['hopsworks']['dir']
 default['glassfish']['base_dir']                 = node['glassfish']['install_dir'] + "/glassfish"
 default['hopsworks']['domains_dir']              = node['install']['dir'].empty? ? node['hopsworks']['dir'] + "/domains" : node['install']['dir'] + "/domains"
+default['hopsworks']['domain_name']              = "domain1"
 default['glassfish']['domains_dir']              = node['hopsworks']['domains_dir']
 
 default['hopsworks']['staging_dir']              = node['hopsworks']['dir'] + "/staging"
@@ -54,7 +56,8 @@ default['hopsworks']['http_logs']['enabled']     = "true"
 
 
 default['glassfish']['package_url']              = node['download_url'] + "/payara-#{node['glassfish']['version']}.zip"
-default['hopsworks']['cauth_url']                = "#{node['download_url']}/otp-auth-0.3.0.jar"
+default['hopsworks']['cauth_version']            = "otp-auth-0.3.0.jar"
+default['hopsworks']['cauth_url']                = "#{node['download_url']}/#{node['hopsworks']['cauth_version']}"
 default['hopsworks']['war_url']                  = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-web.war"
 default['hopsworks']['ca_url']                   = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-ca.war"
 default['hopsworks']['ear_url']                  = "#{node['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-ear.ear"
@@ -88,8 +91,9 @@ default['hopsworks']['cert']['c']                   = "se"
 default['hopsworks']['cert']['password']            = "changeit"
 default['hopsworks']['master']['password']          = "adminpw"
 
-default['hopsworks']['public_ips']               = ['10.0.2.15']
-default['hopsworks']['private_ips']              = ['10.0.2.15']
+default['hopsworks']['public_ips']                  = ['10.0.2.15']
+default['hopsworks']['private_ips']                 = ['10.0.2.15']
+#default['hopsworks']['http_secure_enabled']         = "1"
 
 default['kagent']['enabled']                     = "false"
 
@@ -184,7 +188,7 @@ default['hopssite']['dir']                             = node['install']['dir'].
 default['hopssite']['home']                            = node['hopssite']['dir'] + "/hopssite"
 default['hopssite']['user']                            = node['hopsworks']['email']
 default['hopssite']['password']                        = "admin"
-default['hopssite']['base_dir']                        = node['hopsworks']['domains_dir'] + "/domain1"
+default['hopssite']['base_dir']                        = node['hopsworks']['domains_dir'] + "/" + node['hopsworks']['domain_name']
 default['hopssite']['certs_dir']                       = "#{node['hopsworks']['dir']}/certs-dir/hops-site-certs"
 default['hopssite']['keystore_dir']                    = "#{node['hopssite']['certs_dir']}/keystores"
 default['hopssite']['retry_interval']                  = 60
@@ -202,7 +206,7 @@ default['hopssite']['cert']['c']                       = node['hopsworks']['cert
 # Dela end
 
 default['hopsworks']['max_gpu_request_size']           = 1
-default['hopsworks']['max_cpu_request_size']           = 1
+default['hopsworks']['max_cpu_request_size']           = 1 
 
 default['hopsworks']['anaconda_enabled']               = node['kagent']['conda_enabled']
 
@@ -281,3 +285,5 @@ default['ldap']['security_principal']                = ""
 default['ldap']['security_credentials']              = ""
 default['ldap']['referral']                          = "follow"
 default['ldap']['additional_props']                  = ""
+
+default['dtrx']['version']                           = "dtrx-7.1.tar.gz"

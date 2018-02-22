@@ -1,5 +1,5 @@
 
-domain_name="domain1"
+domain_name= node['hopsworks']['domain_name']
 domains_dir = node['hopsworks']['domains_dir']
 theDomain="#{domains_dir}/#{domain_name}"
 
@@ -17,10 +17,6 @@ else
 end
 
 include_recipe "java"
-
-##
-## default['rb']
-##
 
 # If the install.rb recipe was in a different run, the location of the install dir may
 # not be correct. install_dir is updated by install.rb, but not persisted, so we need to
@@ -335,7 +331,7 @@ for version in versions do
                 :hive_warehouse => "#{node['hive2']['hopsfs_dir']}/warehouse",
                 :hive_scratchdir => node['hive2']['scratch_dir']
            })
-    action :create_if_missing    
+    action :create
   end
 
   #
@@ -349,7 +345,7 @@ for version in versions do
     source "sql/undo/#{version}__undo.sql.erb"
     owner node['glassfish']['user']
     mode 0750
-    action :create_if_missing
+    action :create
   end
 
 end
@@ -945,6 +941,22 @@ template "#{domains_dir}/#{domain_name}/bin/condasearch.sh" do
   action :create
 end
 
+template "#{domains_dir}/#{domain_name}/bin/pipsearch.sh" do
+  source "pipsearch.sh.erb"
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  mode 0750
+  action :create
+end
+
+template "#{domains_dir}/#{domain_name}/bin/list_environment.sh" do
+  source "list_environment.sh.erb"
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  mode 0750
+  action :create
+end
+
 template "#{domains_dir}/#{domain_name}/bin/condalist.sh" do
   source "condalist.sh.erb"
   owner node['glassfish']['user']
@@ -1042,7 +1054,6 @@ if node['hopsworks']['pixiedust']['enabled'].to_str.eql?("true")
   pixiedust_home="#{node['jupyter']['base_dir']}/pixiedust"
   bash "jupyter-pixiedust" do
     user "root"
-#    node['jupyter']['user']
     retries 1
     ignore_failure true
     code <<-EOF
@@ -1198,7 +1209,12 @@ directory node['hopsworks']['staging_dir'] + "/private_dirs"  do
   action :create
 end
 
-
+directory node['hopsworks']['staging_dir'] + "/serving"  do
+  owner node['tfserving']['user']
+  group node['hopsworks']['group']
+  mode "0330"
+  action :create
+end
 
 kagent_keys "#{homedir}" do
   cb_user node['hopsworks']['user']
@@ -1316,3 +1332,8 @@ end
 
 include_recipe "tensorflow::serving"
 
+link "#{node['kagent']['certs_dir']}/cacerts.jks" do
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  to "#{theDomain}/config/cacerts.jks"
+end
