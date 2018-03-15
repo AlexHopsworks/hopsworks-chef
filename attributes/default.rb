@@ -173,7 +173,7 @@ if(node['hopsworks']['hopssite']['version'].eql? "hops-demo")
 end
 if(node['hopsworks']['hopssite']['version'].eql? "bbc5")
   default['hopsworks']['dela']['enabled']              = "true"
-  default['hopsworks']['dela']['client']               = "FULL_CLIENT"
+  default['hopsworks']['dela']['client']               = "BASE_CLIENT"
   default['hopsworks']['hopssite']['domain']           = "bbc5.sics.se"
   default['hopsworks']['hopssite']['port']             = 43080
   default['hopsworks']['hopssite']['register_port']    = 8080
