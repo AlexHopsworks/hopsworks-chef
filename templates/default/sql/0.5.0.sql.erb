@@ -47,3 +47,5 @@ INSERT INTO `hopsworks`.`variables` VALUES ("service_key_rotation_enabled", "<%=
 ALTER TABLE `hopsworks`.`jupyter_settings` ADD COLUMN `shutdown_level` INT NOT NULL DEFAULT 6;
 
 ALTER TABLE `hopsworks`.`project` ADD COLUMN `kafka_max_num_topics` INT NOT NULL DEFAULT <%= node['hopsworks']['kafka_max_num_topics'] %>;
+
+ALTER TABLE `hopsworks`.`dataset` ADD COLUMN `public_ds_size` bigint(20) DEFAULT '-1';
