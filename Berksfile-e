@@ -1,0 +1,42 @@
+Encoding.default_external = "UTF-8"
+source 'https://supermarket.chef.io'
+
+metadata
+
+cookbook 'java'
+cookbook 'conda', github: "AlexHopsworks/conda-chef", branch: "master"
+cookbook 'kagent', github: "AlexHopsworks/kagent-chef", branch: "master"
+cookbook 'hops', github: "AlexHopsworks/hops-hadoop-chef", branch: "master"
+cookbook 'ndb', github: "AlexHopsworks/ndb-chef", branch: "master"
+cookbook 'hadoop_spark', github: "AlexHopsworks/spark-chef", branch: "master"
+cookbook 'flink', github: "AlexHopsworks/flink-chef", branch: "master"
+cookbook 'zeppelin', github: "AlexHopsworks/zeppelin-chef", branch: "master"
+cookbook 'livy', github: "AlexHopsworks/livy-chef", branch: "master"
+cookbook 'drelephant', github: "AlexHopsworks/dr-elephant-chef", branch: "master"
+cookbook 'tensorflow', github: "AlexHopsworks/tensorflow-chef", branch: "master"
+
+cookbook 'epipe', github: "AlexHopsworks/epipe-chef", branch: "master"
+cookbook 'dela', github: "AlexHopsworks/dela-chef", branch: "master"
+
+cookbook 'kzookeeper', github: "AlexHopsworks/kzookeeper", branch: "master"
+cookbook 'kkafka', github: "AlexHopsworks/kafka-cookbook", branch: "master"
+cookbook 'elastic', github: "AlexHopsworks/elasticsearch-chef", branch: "master"
+
+cookbook 'hopslog', github: "AlexHopsworks/hopslog-chef", branch: "master"
+cookbook 'hopsmonitor', github: "AlexHopsworks/hopsmonitor-chef", branch: "master"
+cookbook 'glassfish', github: "AlexHopsworks/chef-glassfish", branch: "master"
+
+cookbook 'ulimit', github: "AlexHopsworks/chef-ulimit", branch: "master"
+
+cookbook 'hive2', github: "AlexHopsworks/hive-chef", branch: "master"
+
+cookbook 'graphite', '~> 1.0.4'
+cookbook 'simple-logstash', '~> 0.2.4'
+
+
+cookbook 'elasticsearch', '~> 2.5.0'
+
+cookbook 'compat_resource', '~> 12.19.0'
+cookbook 'authbind', '~> 0.1.10'
+cookbook 'ntp', '~> 2.0.0'
+cookbook 'sysctl', '~> 1.0.3'
