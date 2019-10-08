@@ -1379,7 +1379,7 @@ CREATE TABLE `tensorboard` (
   `user_id` int(11) NOT NULL,
   `hdfs_user_id` int(11) NOT NULL,
   `endpoint` varchar(100) COLLATE latin1_general_cs NOT NULL,
-  `elastic_id` varchar(100) COLLATE latin1_general_cs NOT NULL,
+  `ml_id` varchar(100) COLLATE latin1_general_cs NOT NULL,
   `pid` bigint(20) NOT NULL,
   `last_accessed` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `hdfs_logdir` varchar(10000) COLLATE latin1_general_cs NOT NULL,
