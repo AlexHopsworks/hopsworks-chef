@@ -209,7 +209,7 @@ if node['install']['enterprise']['install'].casecmp? "true"
   end
 
   node.override['hopsworks']['client_path']="#{client_dir}/#{file_name}"
-  source = "#{node['install']['enterprise']['download_url']}/remote_clients/#{node['hopsworks']['version']}/#{file_name}"
+  source = "#{node['install']['enterprise']['download_url']}/remote_clients/1.3.0-SNAPSHOT/#{file_name}"
   remote_file "#{node['hopsworks']['client_path']}" do
     user node['glassfish']['user']
     group node['glassfish']['group']
@@ -751,9 +751,9 @@ end
 node.override['glassfish']['asadmin']['timeout'] = 400
 
 if node['install']['enterprise']['install'].casecmp? "true"
-  node.override['hopsworks']['ear_url'] = "#{node['install']['enterprise']['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-ear#{node['install']['kubernetes'].casecmp("true") == 0 ? "-kube" : ""}.ear"
-  node.override['hopsworks']['war_url'] = "#{node['install']['enterprise']['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-web.war"
-  node.override['hopsworks']['ca_url'] = "#{node['install']['enterprise']['download_url']}/hopsworks/#{node['hopsworks']['version']}/hopsworks-ca.war"
+  node.override['hopsworks']['ear_url'] = "#{node['install']['enterprise']['download_url']}/hopsworks/1.3.0-SNAPSHOT/hopsworks-ear#{node['install']['kubernetes'].casecmp("true") == 0 ? "-kube" : ""}.ear"
+  node.override['hopsworks']['war_url'] = "#{node['install']['enterprise']['download_url']}/hopsworks/1.3.0-SNAPSHOT/hopsworks-web.war"
+  node.override['hopsworks']['ca_url'] = "#{node['install']['enterprise']['download_url']}/hopsworks/1.3.0-SNAPSHOT/hopsworks-ca.war"
 end
 
 glassfish_deployable "hopsworks-ear" do
