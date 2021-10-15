@@ -74,3 +74,34 @@ ALTER TABLE `hopsworks`.`jupyter_settings` DROP COLUMN `no_limit`;
 ALTER TABLE `hopsworks`.`oauth_login_state` MODIFY COLUMN `state` VARCHAR(128);
 
 ALTER TABLE `hopsworks`.`feature_group` DROP COLUMN `event_time`;
+
+ALTER TABLE `hopsworks`.`rstudio_project` DROP COLUMN `expires`;
+ALTER TABLE `hopsworks`.`rstudio_project` DROP COLUMN `login_password`;
+ALTER TABLE `hopsworks`.`rstudio_project` DROP COLUMN `login_username`;
+ALTER TABLE `hopsworks`.`rstudio_project` ALTER COLUMN `secret` varchar(64) COLLATE latin1_general_cs NOT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` ALTER COLUMN `pid` bigint(20) NOT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` ADD COLUMN `host_ip` varchar(255) COLLATE latin1_general_cs NOT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` ADD COLUMN `token` varchar(255) COLLATE latin1_general_cs NOT NULL;
+
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `base_dir`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `job_config`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `docker_config`;
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `num_tf_ps` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `num_tf_gpus` int(11) DEFAULT '0';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `num_mpi_np` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `appmaster_cores` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `appmaster_memory` int(11) DEFAULT '1024';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `num_executors` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `num_executor_cores` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `executor_memory` int(11) DEFAULT '1024';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `dynamic_initial_executors` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `dynamic_min_executors` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `dynamic_max_executors` int(11) DEFAULT '1';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `log_level` varchar(32) COLLATE latin1_general_cs DEFAULT 'INFO';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `mode` varchar(32) COLLATE latin1_general_cs NOT NULL;
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `umask` varchar(32) COLLATE latin1_general_cs DEFAULT '022';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `archives` varchar(1500) COLLATE latin1_general_cs DEFAULT '';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `jars` varchar(1500) COLLATE latin1_general_cs DEFAULT '';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `files` varchar(1500) COLLATE latin1_general_cs DEFAULT '';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `py_files` varchar(1500) COLLATE latin1_general_cs DEFAULT '';
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `spark_params` varchar(6500) COLLATE latin1_general_cs DEFAULT '';

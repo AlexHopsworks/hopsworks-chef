@@ -72,3 +72,34 @@ ALTER TABLE `hopsworks`.`jupyter_settings` ADD COLUMN `no_limit` tinyint(1) DEFA
 ALTER TABLE `hopsworks`.`oauth_login_state` MODIFY COLUMN `state` VARCHAR(256);
 
 ALTER TABLE `hopsworks`.`feature_group` ADD COLUMN `event_time` VARCHAR(63) DEFAULT NULL;
+
+ALTER TABLE `hopsworks`.`rstudio_project` ADD COLUMN `expires` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `hopsworks`.`rstudio_project` ADD COLUMN `login_password` varchar(255) CHARACTER SET latin1 COLLATE latin1_general_cs DEFAULT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` ADD COLUMN `login_username` varchar(255) CHARACTER SET latin1 COLLATE latin1_general_cs DEFAULT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` ALTER COLUMN `secret` varchar(255) COLLATE latin1_general_cs NOT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` ALTER COLUMN `pid` varchar(255) CHARACTER SET latin1 COLLATE latin1_general_cs NOT NULL;
+ALTER TABLE `hopsworks`.`rstudio_project` DROP COLUMN `host_ip`;
+ALTER TABLE `hopsworks`.`rstudio_project` DROP COLUMN `token`;
+
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `base_dir` varchar(255) COLLATE latin1_general_cs DEFAULT NULL;
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `job_config` varchar(11000) COLLATE latin1_general_cs DEFAULT NULL;
+ALTER TABLE `hopsworks`.`rstudio_settings` ADD COLUMN `docker_config` varchar(1000) COLLATE latin1_general_cs DEFAULT NULL;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `num_tf_ps`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `num_tf_gpus`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `num_mpi_np`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `appmaster_cores`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `appmaster_memory`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `num_executors`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `num_executor_cores`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `executor_memory`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `dynamic_initial_executors`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `dynamic_min_executors`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `dynamic_max_executors`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `log_level`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `mode`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `umask`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `archives`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `jars`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `files`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `py_files`;
+ALTER TABLE `hopsworks`.`rstudio_settings` DROP COLUMN `spark_params`;
