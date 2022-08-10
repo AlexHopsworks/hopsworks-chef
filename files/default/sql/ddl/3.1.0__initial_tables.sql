@@ -2344,21 +2344,6 @@ CREATE TABLE IF NOT EXISTS `feature_view_link` (
   CONSTRAINT `feature_view_parent_fkc` FOREIGN KEY (`parent_feature_group_id`) REFERENCES `feature_group` (`id`) ON DELETE SET NULL ON UPDATE NO ACTION
 ) ENGINE=ndbcluster DEFAULT CHARSET=latin1 COLLATE=latin1_general_cs;
 
-CREATE TABLE IF NOT EXISTS `training_dataset_link` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `training_dataset_id` int(11) NOT NULL,
-  `parent_feature_view_id` int(11),
-  `parent_feature_store` varchar(100) NOT NULL,
-  `parent_feature_view_name` varchar(63) NOT NULL,
-  `parent_feature_view_version` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `link_unique` (`training_dataset_id`,`parent_feature_view_id`),
-  KEY `training_dataset_id_fkc` (`training_dataset_id`),
-  KEY `training_dataset_parent_id_fkc` (`parent_feature_view_id`),
-  CONSTRAINT `training_dataset_id_fkc` FOREIGN KEY (`training_dataset_id`) REFERENCES `training_dataset` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
-  CONSTRAINT `training_dataset_parent_id_fkc` FOREIGN KEY (`parent_feature_view_id`) REFERENCES `feature_view` (`id`) ON DELETE SET NULL ON UPDATE NO ACTION
-) ENGINE=ndbcluster DEFAULT CHARSET=latin1 COLLATE=latin1_general_cs;
-
 #model_id is <model_name>_<model_version> (256 + 1 + 10)
 CREATE TABLE IF NOT EXISTS `model_link` (
   `id` int NOT NULL AUTO_INCREMENT,
