@@ -555,6 +555,18 @@
          <description>Total number of tasks ever scheduled</description>
          <type>gauge</type>
       </metadata>
+      <metadata>
+         <name>executorService_concurrent_jupyterExecutorService_PoolSize_count</name>
+         <mbean>amx:pp=/mon/server-mon[server],type=managed-executor-service-mon,name=executorService/concurrent/jupyterExecutorService/PoolSize#count</mbean>
+         <description>The current number of threads in the jupyter pool</description>
+         <type>gauge</type>
+      </metadata>
+      <metadata>
+         <name>executorService_concurrent_jupyterExecutorService_ActiveCount_count</name>
+         <mbean>amx:pp=/mon/server-mon[server],type=managed-executor-service-mon,name=executorService/concurrent/jupyterExecutorService/ActiveCount#count</mbean>
+         <description>The approximate number of active threads in the jupyter pool</description>
+         <type>gauge</type>
+      </metadata>
      <metadata>
        <name>executorService_concurrent_condaExecutorService_PoolSize_count</name>
        <mbean>amx:pp=/mon/server-mon[server],type=managed-executor-service-mon,name=executorService/concurrent/condaExecutorService/PoolSize#count</mbean>
