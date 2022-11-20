@@ -23,8 +23,8 @@ ALTER TABLE `hopsworks`.`feature_store_statistic` DROP COLUMN `for_transformatio
 ALTER TABLE `hopsworks`.`training_dataset` DROP COLUMN `train_split`;
 
 -- training dataset filter table
-DROP TABLE IF EXISTS `hopsworks`.`training_dataset_filter`;
 DROP TABLE IF EXISTS `hopsworks`.`training_dataset_filter_condition`;
+DROP TABLE IF EXISTS `hopsworks`.`training_dataset_filter`;
 
 ALTER TABLE `hopsworks`.`variables` DROP COLUMN `hide`;
 
