@@ -32,8 +32,8 @@ ALTER TABLE `hopsworks`.`conda_commands` ADD COLUMN `user` varchar(52) COLLATE l
 
 DROP TABLE IF EXISTS `git_executions`;
 
-DROP TABLE IF EXISTS `git_repositories`;
-
 DROP TABLE IF EXISTS `git_commits`;
 
 DROP TABLE IF EXISTS `git_repository_remotes`;
+
+DROP TABLE IF EXISTS `git_repositories`;
