@@ -879,6 +879,43 @@ if node['install']['enterprise']['install'].casecmp? "true" and exists_local("cl
   end
 end
 
+#
+# there is a clash between 2.4 and 2.5. we need to undeploy 2.4 before deploying 2.5
+#
+
+glassfish_deployable "undeploy_hopsworks-ear" do
+  component_name "hopsworks-ear:#{previous_version}"
+  target "server"
+  domain_name domain_name
+  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+  username username
+  admin_port admin_port
+  secure true
+  action :undeploy
+end
+
+glassfish_deployable "undeploy_hopsworks-war" do
+  component_name "hopsworks-web:#{previous_version}"
+  target "server"
+  domain_name domain_name
+  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+  username username
+  admin_port admin_port
+  secure true
+  action :undeploy
+end
+
+glassfish_deployable "undeploy_hopsworks-ca" do
+  component_name "hopsworks-ca:#{previous_version}"
+  target "server"
+  domain_name domain_name
+  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
+  username username
+  admin_port admin_port
+  secure true
+  action :undeploy
+end
+
 glassfish_deployable "hopsworks-ear" do
   component_name "hopsworks-ear:#{node['hopsworks']['version']}"
   target "server"
@@ -971,42 +1008,6 @@ bash "extract_frontend" do
   EOH
 end
 
-#
-# If deployment of the new version succeeds, then undeploy the previous version
-#
-
-glassfish_deployable "undeploy_hopsworks-ear" do
-  component_name "hopsworks-ear:#{previous_version}"
-  target "server"
-  domain_name domain_name
-  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-  username username
-  admin_port admin_port
-  secure true
-  action :undeploy
-end
-
-glassfish_deployable "undeploy_hopsworks-war" do
-  component_name "hopsworks-web:#{previous_version}"
-  target "server"
-  domain_name domain_name
-  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-  username username
-  admin_port admin_port
-  secure true
-  action :undeploy
-end
-
-glassfish_deployable "undeploy_hopsworks-ca" do
-  component_name "hopsworks-ca:#{previous_version}"
-  target "server"
-  domain_name domain_name
-  password_file "#{domains_dir}/#{domain_name}_admin_passwd"
-  username username
-  admin_port admin_port
-  secure true
-  action :undeploy
-end
 
 hopsworks_certs "generate-certs" do
   action :generate
