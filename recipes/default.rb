@@ -471,6 +471,7 @@ props =  {
 }
 
  glassfish_auth_realm "#{realmname}" do
+   target "server-config"
    realm_name "#{realmname}"
    jaas_context "jdbcRealm"
    properties props
@@ -481,24 +482,6 @@ props =  {
    secure false
    classname "com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm"
  end
-
-
- cProps = {
-     'datasource-jndi' => jndiDB,
-     'password-column' => 'password',
-     'encoding' => 'Hex',
-     'group-table' => 'hopsworks.users_groups',
-     'user-table' => 'hopsworks.users',
-     'group-name-column' => 'group_name',
-     'user-name-column' => 'email',
-     'group-table-user-name-column' => 'email',
-     'otp-secret-column' => 'secret',
-     'two-factor-column' => 'two_factor',
-     'user-status-column' => 'status',
-     'yubikey-table' => 'hopsworks.yubikey',
-     'variables-table' => 'hopsworks.variables',
-     'user-account-type-column' => 'mode'
- }
 
 glassfish_asadmin "set configs.config.server-config.cdi-service.enable-concurrent-deployment=true" do
   domain_name domain_name
@@ -735,7 +718,8 @@ glassfish_asadmin "delete-jdbc-connection-pool --cascade ejbTimerPool" do
   only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-jdbc-connection-pools | grep 'ejbTimerPool$'"
 end
 
-glassfish_asadmin "create-jdbc-connection-pool --restype javax.sql.DataSource --datasourceclassname com.mysql.cj.jdbc.MysqlDataSource --ping=true --isconnectvalidatereq=true --validationmethod=auto-commit --description=\"Hopsworks EJB Connection Pool\" --property user=#{node['hopsworks']['mysql']['user']}:password=#{node['hopsworks']['mysql']['password']}:url=\"jdbc\\:mysql\\://127.0.0.1\\:3306/glassfish_timers\":useSSL=false:allowPublicKeyRetrieval=true ejbTimerPool" do
+# Timers can have nore than one database connections to different databases, so we need XADataSource (distributed) transaction manager b/c more than 1 non-XA Resource is not allowed. 
+glassfish_asadmin "create-jdbc-connection-pool --restype javax.sql.XADataSource --datasourceclassname com.mysql.cj.jdbc.MysqlXADataSource --ping=true --isconnectvalidatereq=true --validationmethod=auto-commit --description=\"Hopsworks EJB Connection Pool\" --property user=#{node['hopsworks']['mysql']['user']}:password=#{node['hopsworks']['mysql']['password']}:url=\"jdbc\\:mysql\\://127.0.0.1\\:3306/glassfish_timers\":useSSL=false:allowPublicKeyRetrieval=true ejbTimerPool" do
   domain_name domain_name
   password_file "#{domains_dir}/#{domain_name}_admin_passwd"
   username username
@@ -1200,6 +1184,22 @@ kagent_keys "#{hopsworks_user_home}" do
   action :return_publickey
 end
 
+# For HA we need to generate ssh for glassfish user
+glassfish_user_home = conda_helpers.get_user_home(node['glassfish']['user'])
+kagent_keys "#{glassfish_user_home}" do
+  cb_user node['glassfish']['user']
+  cb_group node['glassfish']['group']
+  action :generate
+end
+
+kagent_keys "#{glassfish_user_home}" do
+  cb_user node['glassfish']['user']
+  cb_group node['glassfish']['group']
+  cb_name "hopsworks"
+  cb_recipe "default"
+  action :return_publickey
+end
+
 if node['kagent']['enabled'].casecmp? "true"
   kagent_config "glassfish-domain1" do
     service "glassfish_#{node['hopsworks']['domain_name']}"
@@ -1210,7 +1210,7 @@ end
 
 # We can't use the internal port yet as the certificate has not been generated yet
 hopsworks_certs "generate-int-certs" do
-  subject     "/CN=#{consul_helper.get_service_fqdn("hopsworks.glassfish")}/OU=0"
+  subject     "/CN=#{node['hopsworks']['hopsworks_public_host']}/OU=0"
   action      :generate_int_certs
 end
 
