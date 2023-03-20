@@ -32,6 +32,7 @@ log_dir="#{nodedir}/#{node['hopsworks']['node_name']}/#{master_instance}/logs"
 
 homedir = conda_helpers.get_user_home(node['hopsworks']['user'])
 node.override['glassfish']['install_dir'] = "#{node['glassfish']['install_dir']}/glassfish/versions/current"
+glassfish_user_home = conda_helpers.get_user_home(node['glassfish']['user'])
 
 package "expect" do
   retries 10
@@ -346,7 +347,7 @@ end
 
 # This will not work when adding nodes on upgrade
 glassfish_nodes.each_with_index do |val, index|
-  glassfish_asadmin "create-node-ssh --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} --force=true worker#{index}" do
+  glassfish_asadmin "create-node-ssh --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} --sshkeyfile #{glassfish_user_home}/.ssh/id_ed25519 worker#{index}" do
     domain_name domain_name
     password_file password_file
     username username
