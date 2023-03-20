@@ -346,7 +346,7 @@ end
 
 # This will not work when adding nodes on upgrade
 glassfish_nodes.each_with_index do |val, index|
-  glassfish_asadmin "create-node-ssh --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} worker#{index}" do
+  glassfish_asadmin "create-node-ssh --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} --force=true worker#{index}" do
     domain_name domain_name
     password_file password_file
     username username
