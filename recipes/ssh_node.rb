@@ -7,10 +7,10 @@ username=node['hopsworks']['admin']['user']
 nodedir=node['glassfish']['nodes_dir']
 
 admin_port = node['hopsworks']['admin']['port']
-master_ip=private_recipe_ip('hopsworks', 'master')
+das_ip=private_recipe_ip('hopsworks', 'das_node')
 public_ip=my_public_ip()
 
-asadmin_cmd="#{asadmin} --host #{master_ip} --port #{admin_port} --user #{username} --passwordfile #{password_file}"
+asadmin_cmd="#{asadmin} --host #{das_ip} --port #{admin_port} --user #{username} --passwordfile #{password_file}"
 service_name="glassfish-instance"
 
 node_name=get_node_name(asadmin_cmd, public_ip)

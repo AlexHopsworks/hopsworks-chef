@@ -23,16 +23,21 @@ dependencies:
     global:
       - hops::dn
       - hopslog::default
-  - recipe: hopsworks::master_ssh_key
+  - recipe: hopsworks::das_ssh_key
     global:
       - hopsworks::default
-  - recipe: hopsworks::master
+  - recipe: hopsworks::das_node
     local:
       - hopsworks::default
     global:
-      - hopsworks::master_ssh_key
-  - recipe: hopsworks::slave
+      - hopsworks::das_ssh_key
+  - recipe: hopsworks::ssh_node
     local:
       - kagent::default
     global:
-      - hopsworks::master
+      - hopsworks::das_node
+  - recipe: hopsworks::config_node
+    local:
+      - kagent::default
+    global:
+      - hopsworks::das_node

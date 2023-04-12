@@ -9,7 +9,7 @@ package "openssh-server"
 public_ip=my_public_ip()
 payara_config = "hopsworks-config"
 deployment_group = "hopsworks-dg"
-master_instance = "master-instance"
+local_instance = "instance0"
 service_name="glassfish-instance"
 
 domain_name= node['hopsworks']['domain_name']
@@ -17,18 +17,18 @@ domains_dir = node['glassfish']['domains_dir']
 admin_port = node['hopsworks']['admin']['port']
 username=node['hopsworks']['admin']['user']
 password=node['hopsworks']['admin']['password']
-glassfish_nodes=private_recipe_ips('hopsworks', 'slave')
+ssh_nodes=private_recipe_ips('hopsworks', 'ssh_node')
+config_nodes=private_recipe_ips('hopsworks', 'config_node')
 current_version = node['hopsworks']['current_version']
 
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
-admin_pwd = "#{domains_dir}/#{domain_name}_admin_passwd"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 
 nodedir=node['glassfish']['nodes_dir']
 
-asadmin_cmd="#{asadmin} --user #{username} --passwordfile #{password_file}"
+asadmin_cmd="#{asadmin} -I false -t --user #{username} --passwordfile #{password_file}"
 
-log_dir="#{nodedir}/#{node['hopsworks']['node_name']}/#{master_instance}/logs"
+log_dir="#{nodedir}/#{node['hopsworks']['node_name']}/#{local_instance}/logs"
 
 homedir = conda_helpers.get_user_home(node['hopsworks']['user'])
 node.override['glassfish']['install_dir'] = "#{node['glassfish']['install_dir']}/glassfish/versions/current"
@@ -55,7 +55,7 @@ if node['hopsworks']['ha']['loadbalancer'].to_s == "true"
         :load_balancer_port => "#{node['hopsworks']['ha']['loadbalancer_port']}",
         :load_balancer_log_dir => "/var/log/apache2",
         :public_ip => public_ip,
-        :glassfish_nodes => glassfish_nodes
+        :glassfish_nodes => ssh_nodes + config_nodes
       })
     end
 
@@ -94,7 +94,7 @@ if node['hopsworks']['ha']['loadbalancer'].to_s == "true"
         :load_balancer_port => "#{node['hopsworks']['ha']['loadbalancer_port']}",
         :load_balancer_log_dir => "/var/log/httpd",
         :public_ip => public_ip,
-        :glassfish_nodes => glassfish_nodes
+        :glassfish_nodes => ssh_nodes + config_nodes
       })
     end
 
@@ -126,7 +126,7 @@ glassfish_asadmin "copy-config default-config #{payara_config}" do
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-configs | grep #{payara_config}"
+  not_if "#{asadmin_cmd} list-configs | grep #{payara_config}"
 end
 
 glassfish_asadmin "delete-jvm-options --target #{payara_config} -Xmx512m" do
@@ -135,7 +135,7 @@ glassfish_asadmin "delete-jvm-options --target #{payara_config} -Xmx512m" do
   username username
   admin_port admin_port
   secure false
-  only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-jvm-options --target #{payara_config} | grep Xmx512m"
+  only_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xmx512m"
 end
 
 glassfish_asadmin "create-jvm-options --target #{payara_config} -Xss#{node['glassfish']['max_stack_size']}k" do
@@ -144,7 +144,7 @@ glassfish_asadmin "create-jvm-options --target #{payara_config} -Xss#{node['glas
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-jvm-options --target #{payara_config} | grep Xss#{node['glassfish']['max_stack_size']}k"
+  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xss#{node['glassfish']['max_stack_size']}k"
 end
 
 glassfish_asadmin "create-jvm-options --target #{payara_config} -Xms#{node['glassfish']['min_mem']}m" do
@@ -153,7 +153,7 @@ glassfish_asadmin "create-jvm-options --target #{payara_config} -Xms#{node['glas
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-jvm-options --target #{payara_config} | grep Xms#{node['glassfish']['min_mem']}m"
+  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xms#{node['glassfish']['min_mem']}m"
 end
 
 glassfish_asadmin "create-jvm-options --target #{payara_config} -Xmx#{node['glassfish']['max_mem']}m" do
@@ -162,7 +162,7 @@ glassfish_asadmin "create-jvm-options --target #{payara_config} -Xmx#{node['glas
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-jvm-options --target #{payara_config} | grep Xmx#{node['glassfish']['max_mem']}m"
+  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xmx#{node['glassfish']['max_mem']}m"
 end
 
 glassfish_asadmin "create-jvm-options --target #{payara_config} -DHADOOP_HOME=#{node['hops']['dir']}/hadoop" do
@@ -171,7 +171,7 @@ glassfish_asadmin "create-jvm-options --target #{payara_config} -DHADOOP_HOME=#{
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-jvm-options --target #{payara_config} | grep DHADOOP_HOME"
+  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep DHADOOP_HOME"
 end
 
 glassfish_asadmin "create-jvm-options --target #{payara_config} -DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop" do
@@ -180,7 +180,7 @@ glassfish_asadmin "create-jvm-options --target #{payara_config} -DHADOOP_CONF_DI
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-jvm-options --target #{payara_config} | grep DHADOOP_CONF_DIR="
+  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep DHADOOP_CONF_DIR="
 end
 
 hopsworks_configure_server "glassfish_configure_realm" do
@@ -190,7 +190,7 @@ hopsworks_configure_server "glassfish_configure_realm" do
   admin_port admin_port
   target "#{payara_config}"
   asadmin asadmin
-  admin_pwd admin_pwd
+  admin_pwd password_file
   action :glassfish_configure_realm
 end
 
@@ -202,7 +202,7 @@ hopsworks_configure_server "glassfish_configure_network" do
   admin_port admin_port
   target "#{payara_config}"
   asadmin asadmin
-  admin_pwd admin_pwd
+  admin_pwd password_file
   internal_port node['hopsworks']['internal']['port']
   action :glassfish_configure_network
 end
@@ -214,7 +214,7 @@ glassfish_asadmin "create-protocol --securityenabled=false --target #{payara_con
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-protocols #{payara_config} | grep 'http-internal'"
+  not_if "#{asadmin_cmd} list-protocols #{payara_config} | grep 'http-internal'"
 end
 
 glassfish_asadmin "create-http --default-virtual-server server --target #{payara_config} http-internal" do
@@ -223,7 +223,7 @@ glassfish_asadmin "create-http --default-virtual-server server --target #{payara
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} get #{payara_config}.network-config.protocols.protocol.http-internal.* | grep 'http.uri-encoding'"
+  not_if "#{asadmin_cmd} get #{payara_config}.network-config.protocols.protocol.http-internal.* | grep 'http.uri-encoding'"
 end
 
 glassfish_asadmin "create-network-listener --listenerport 28182 --threadpool http-thread-pool --target #{payara_config} --protocol http-internal http-int-list" do
@@ -232,7 +232,7 @@ glassfish_asadmin "create-network-listener --listenerport 28182 --threadpool htt
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-http-listeners #{payara_config} | grep 'http-int-list'"
+  not_if "#{asadmin_cmd} list-http-listeners #{payara_config} | grep 'http-int-list'"
 end
 
 # temp https-internal.security-enabled=false until proxy ssl is fixed
@@ -259,7 +259,7 @@ hopsworks_configure_server "glassfish_configure" do
   admin_port admin_port
   target "#{payara_config}"
   asadmin asadmin
-  admin_pwd admin_pwd
+  admin_pwd password_file
   override_props glassfish_network_listener_conf
   action :glassfish_configure
 end
@@ -272,7 +272,7 @@ hopsworks_configure_server "glassfish_configure_monitoring" do
   admin_port admin_port
   target "#{payara_config}"
   asadmin asadmin
-  admin_pwd admin_pwd
+  admin_pwd password_file
   action :glassfish_configure_monitoring
 end
 
@@ -286,15 +286,13 @@ glassfish_asadmin "set-hazelcast-configuration --publicaddress #{public_ip} --da
   secure false
 end
 
-# --nodedir #{domains_dir}/nodes will fail to start and need restarting from the node
-# start-local-instance --node localhost-domain1 --nodedir #{domains_dir}/nodes --sync normal --timeout 120 master-instance
-glassfish_asadmin "create-local-instance --config #{payara_config} --nodedir #{nodedir} #{master_instance}" do
+glassfish_asadmin "create-local-instance --config #{payara_config} --nodedir #{nodedir} #{local_instance}" do
   domain_name domain_name
   password_file password_file
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-instances | grep #{master_instance}"
+  not_if "#{asadmin_cmd} list-instances | grep #{local_instance}"
 end
 
 directory node['hopsworks']['data_volume']['localhost-domain1'] do
@@ -328,13 +326,13 @@ link "#{log_dir}" do
   to node['hopsworks']['data_volume']['node_logs']
 end
 
-glassfish_asadmin "create-system-properties --target #{master_instance} hazelcast.local.publicAddress=#{public_ip}" do
+glassfish_asadmin "create-system-properties --target #{local_instance} hazelcast.local.publicAddress=#{public_ip}" do
   domain_name domain_name
   password_file password_file
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-system-properties #{master_instance} | grep hazelcast.local.publicAddress=#{public_ip}"
+  not_if "#{asadmin_cmd} list-system-properties #{local_instance} | grep hazelcast.local.publicAddress=#{public_ip}"
 end
 
 #
@@ -346,14 +344,15 @@ end
 # --nodedir #{domains_dir}/nodes will fail to start and need restarting from the node
 
 # This will not work when adding nodes on upgrade
-glassfish_nodes.each_with_index do |val, index|
+ssh_nodes.each_with_index do |val, i|
+  index = i + 1
   glassfish_asadmin "create-node-ssh --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} --sshkeyfile #{glassfish_user_home}/.ssh/id_ed25519 worker#{index}" do
     domain_name domain_name
     password_file password_file
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-nodes | grep worker#{index}"
+    not_if "#{asadmin_cmd} list-nodes | grep worker#{index}"
   end
   glassfish_asadmin "create-instance --config #{payara_config} --node worker#{index} instance#{index}" do
     domain_name domain_name
@@ -361,7 +360,7 @@ glassfish_nodes.each_with_index do |val, index|
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-instances | grep instance#{index}"
+    not_if "#{asadmin_cmd} list-instances | grep instance#{index}"
   end
 
   glassfish_asadmin "create-system-properties --target instance#{index} hazelcast.local.publicAddress=#{val}" do
@@ -370,7 +369,19 @@ glassfish_nodes.each_with_index do |val, index|
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-system-properties instance#{index} | grep hazelcast.local.publicAddress=#{val}"
+    not_if "#{asadmin_cmd} list-system-properties instance#{index} | grep hazelcast.local.publicAddress=#{val}"
+  end
+end
+
+# This is done here to reserve the name of the worker
+config_nodes.each_with_index do |val, i|
+  glassfish_asadmin "create-node-config --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} worker#{index + 1}" do
+    domain_name domain_name
+    password_file password_file
+    username username
+    admin_port admin_port
+    secure false
+    not_if "#{asadmin_cmd} list-nodes | grep #{node_name}"
   end
 end
 
@@ -380,10 +391,10 @@ glassfish_asadmin "create-deployment-group #{deployment_group}" do
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-deployment-groups | grep #{deployment_group}"
+  not_if "#{asadmin_cmd} list-deployment-groups | grep #{deployment_group}"
 end
 
-glassfish_asadmin "add-instance-to-deployment-group --instance #{master_instance} --deploymentgroup #{deployment_group}" do
+glassfish_asadmin "add-instance-to-deployment-group --instance #{local_instance} --deploymentgroup #{deployment_group}" do
   domain_name domain_name
   password_file password_file
   username username
@@ -391,8 +402,8 @@ glassfish_asadmin "add-instance-to-deployment-group --instance #{master_instance
   secure false
 end
 
-glassfish_nodes.each_with_index do |val, index|
-  glassfish_asadmin "add-instance-to-deployment-group --instance instance#{index} --deploymentgroup #{deployment_group}" do
+ssh_nodes.each_with_index do |val, index|
+  glassfish_asadmin "add-instance-to-deployment-group --instance instance#{index + 1} --deploymentgroup #{deployment_group}" do
     domain_name domain_name
     password_file password_file
     username username
@@ -415,7 +426,7 @@ glassfish_deployable "hopsworks-ear" do
   enabled true
   secure true
   ignore_failure true
-  only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb server | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
 end
 
 glassfish_deployable "hopsworks" do
@@ -434,7 +445,7 @@ glassfish_deployable "hopsworks" do
   keep_state true
   enabled true
   ignore_failure true 
-  only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type web server | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
+  only_if "#{asadmin_cmd} list-applications --type web server | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
 end
 
 glassfish_deployable "hopsworks-ca" do
@@ -453,13 +464,13 @@ glassfish_deployable "hopsworks-ca" do
   keep_state true
   enabled true
   ignore_failure true
-  only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb server | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
 hopsworks_configure_server "change_node_master_password" do
   username username
   asadmin asadmin
-  admin_pwd admin_pwd
+  admin_pwd password_file
   nodedir nodedir
   node_name node['hopsworks']['node_name']
   current_master_password "changeit"
@@ -489,8 +500,8 @@ glassfish_resources.each do |val|
     username username
     admin_port admin_port
     secure false
-    only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-resource-refs server | grep #{val}"
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-resource-refs #{deployment_group} | grep #{val}"
+    only_if "#{asadmin_cmd} list-resource-refs server | grep #{val}"
+    not_if "#{asadmin_cmd} list-resource-refs #{deployment_group} | grep #{val}"
   end
 end
 
@@ -502,14 +513,14 @@ glassfish_asadmin "restart-domain" do
   username username
   admin_port admin_port
   secure false
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-applications #{deployment_group} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
-  only_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-instances #{deployment_group} | grep -w \"not running\""
+  not_if "#{asadmin_cmd} list-applications #{deployment_group} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-instances #{deployment_group} | grep -w \"not running\""
 end
 
 kagent_config "glassfish-#{domain_name}" do
   service "glassfish_#{domain_name}"
   role service_name
-  log_file "#{nodedir}/#{node['hopsworks']['node_name']}/#{master_instance}/logs/server.log"
+  log_file "#{nodedir}/#{node['hopsworks']['node_name']}/#{local_instance}/logs/server.log"
   restart_agent true
   only_if {node['kagent']['enabled'].casecmp? "true"}
   only_if { ::File.directory?("#{nodedir}")}
@@ -603,7 +614,7 @@ glassfish_deployable "hopsworks-ca" do
   retries 1
   keep_state true
   enabled true
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb #{deployment_group} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
+  not_if "#{asadmin_cmd} list-applications --type ejb #{deployment_group} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
 glassfish_deployable "hopsworks-ear" do
@@ -623,7 +634,7 @@ glassfish_deployable "hopsworks-ear" do
   retries 1
   keep_state true
   enabled true
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type ejb #{deployment_group} | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
+  not_if "#{asadmin_cmd} list-applications --type ejb #{deployment_group} | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
 end
 
 glassfish_deployable "hopsworks" do
@@ -644,5 +655,5 @@ glassfish_deployable "hopsworks" do
   retries 1
   keep_state true
   enabled true
-  not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd}  list-applications --type web #{deployment_group} | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\""
+  not_if "#{asadmin_cmd} list-applications --type web #{deployment_group} | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\""
 end
