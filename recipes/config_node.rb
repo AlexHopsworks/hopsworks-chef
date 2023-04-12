@@ -140,7 +140,6 @@ end
 hopsworks_configure_server "change_node_master_password" do
   username username
   asadmin asadmin
-  admin_pwd admin_pwd
   nodedir nodedir
   node_name node_name
   current_master_password "changeit"

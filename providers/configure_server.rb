@@ -6,35 +6,38 @@ action :glassfish_configure_network do
   admin_port=new_resource.admin_port
   target=new_resource.target
   asadmin=new_resource.asadmin
-  admin_pwd=new_resource.admin_pwd
   internal_port=new_resource.internal_port
+  securityenabled=new_resource.securityenabled
+  network_name=new_resource.network_name
+
+  asadmin_cmd="#{asadmin} --user #{username} --passwordfile #{password_file}"
   
   # add new network listener for Hopsworks to listen on an internal port
-  glassfish_asadmin "create-protocol --securityenabled=true --target #{target} https-internal" do
+  glassfish_asadmin "create-protocol --securityenabled=#{securityenabled} --target #{target} #{network_name}" do
     domain_name domain_name
     password_file password_file
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-protocols #{target} | grep 'https-internal'"
+    not_if "#{asadmin_cmd} list-protocols #{target} | grep #{network_name}"
   end
   
-  glassfish_asadmin "create-http --default-virtual-server server --target #{target} https-internal" do
+  glassfish_asadmin "create-http --default-virtual-server server --target #{target} #{network_name}" do
     domain_name domain_name
     password_file password_file
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} get #{target}.network-config.protocols.protocol.https-internal.* | grep 'http.uri-encoding'"
+    not_if "#{asadmin_cmd} get #{target}.network-config.protocols.protocol.#{network_name}.* | grep 'http.uri-encoding'"
   end
   
-  glassfish_asadmin "create-network-listener --listenerport #{internal_port} --threadpool http-thread-pool --target #{target} --protocol https-internal https-int-list" do
+  glassfish_asadmin "create-network-listener --listenerport #{internal_port} --threadpool http-thread-pool --target #{target} --protocol #{network_name} #{network_name}-list" do
     domain_name domain_name
     password_file password_file
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin} --user #{username} --passwordfile #{admin_pwd} list-http-listeners #{target} | grep 'https-int-list'"
+    not_if "#{asadmin_cmd} list-http-listeners #{target} | grep #{network_name}-list"
   end
 end
 
@@ -46,7 +49,6 @@ action :glassfish_configure_monitoring do
   admin_port=new_resource.admin_port
   target=new_resource.target
   asadmin=new_resource.asadmin
-  admin_pwd=new_resource.admin_pwd
 
   # Enable JMX metrics
   # https://glassfish.org/docs/5.1.0/administration-guide/monitoring.html
@@ -77,39 +79,6 @@ action :glassfish_configure_monitoring do
   end
 end
 
-action :glassfish_configure_logging do 
-
-  domain_name=new_resource.domain_name
-  password_file=new_resource.password_file
-  username=new_resource.username
-  admin_port=new_resource.admin_port
-  target=new_resource.target
-  asadmin=new_resource.asadmin
-  admin_pwd=new_resource.admin_pwd
-
-  http_logging_conf = {
-    # Enable http logging
-    "#{target}.http-service.access-logging-enabled" => 'true',
-    # If you change the suffix, you should also change dump_web_logs_to_hdfs.sh.erb file
-    # ':' is not a legal filename character in HDFS, thus '_'
-    "#{target}.http-service.access-log.rotation-suffix" => 'yyyy-MM-dd-kk_mm',
-    "#{target}.http-service.access-log.max-history-files" => '10',
-    "#{target}.http-service.access-log.buffer-size-bytes" => '32768',
-    "#{target}.http-service.access-log.write-interval-seconds" => '120',
-    "#{target}.http-service.access-log.rotation-interval-in-minutes" => "1400"
-  }
-
-  http_logging_conf.each do |property, value|
-    glassfish_asadmin "set #{property}=#{value}" do
-      domain_name domain_name
-      password_file password_file
-      username username
-      admin_port admin_port
-      secure false
-    end
-  end
-end
-
 action :glassfish_configure do 
 
   domain_name=new_resource.domain_name
@@ -119,7 +88,6 @@ action :glassfish_configure do
   admin_port=new_resource.admin_port
   target=new_resource.target
   asadmin=new_resource.asadmin
-  admin_pwd=new_resource.admin_pwd
   override=new_resource.override_props
 
   glassfish_conf = {
@@ -223,7 +191,6 @@ action :glassfish_configure_realm do
   admin_port=new_resource.admin_port
   target=new_resource.target
   asadmin=new_resource.asadmin
-  admin_pwd=new_resource.admin_pwd
   realmname = "kthfsrealm"
   jndiDB = "jdbc/hopsworks"
   props =  {
@@ -256,7 +223,6 @@ end
 action :change_node_master_password do
   username=new_resource.username
   asadmin=new_resource.asadmin
-  admin_pwd=new_resource.admin_pwd
   nodedir=new_resource.nodedir
   node_name=new_resource.node_name
   current_password=new_resource.current_master_password

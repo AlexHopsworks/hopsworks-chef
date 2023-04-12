@@ -8,6 +8,7 @@ end
 package "openssh-server"
 public_ip=my_public_ip()
 payara_config = "hopsworks-config"
+config="server-config"
 deployment_group = "hopsworks-dg"
 local_instance = "instance0"
 service_name="glassfish-instance"
@@ -188,9 +189,8 @@ hopsworks_configure_server "glassfish_configure_realm" do
   password_file password_file
   username username
   admin_port admin_port
-  target "#{payara_config}"
+  target payara_config
   asadmin asadmin
-  admin_pwd password_file
   action :glassfish_configure_realm
 end
 
@@ -200,39 +200,26 @@ hopsworks_configure_server "glassfish_configure_network" do
   password_file password_file
   username username
   admin_port admin_port
-  target "#{payara_config}"
+  target payara_config
   asadmin asadmin
-  admin_pwd password_file
   internal_port node['hopsworks']['internal']['port']
+  network_name "https-internal"
   action :glassfish_configure_network
 end
 
 # http internal for load balancer
-glassfish_asadmin "create-protocol --securityenabled=false --target #{payara_config} http-internal" do
+hopsworks_configure_server "glassfish_configure_network" do
   domain_name domain_name
+  domains_dir domains_dir
   password_file password_file
   username username
   admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-protocols #{payara_config} | grep 'http-internal'"
-end
-
-glassfish_asadmin "create-http --default-virtual-server server --target #{payara_config} http-internal" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} get #{payara_config}.network-config.protocols.protocol.http-internal.* | grep 'http.uri-encoding'"
-end
-
-glassfish_asadmin "create-network-listener --listenerport 28182 --threadpool http-thread-pool --target #{payara_config} --protocol http-internal http-int-list" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-http-listeners #{payara_config} | grep 'http-int-list'"
+  target payara_config
+  asadmin asadmin
+  internal_port 28182
+  network_name "http-internal"
+  securityenabled false
+  action :glassfish_configure_network
 end
 
 # temp https-internal.security-enabled=false until proxy ssl is fixed
@@ -243,12 +230,12 @@ glassfish_network_listener_conf = {
   "#{payara_config}.availability-service.ejb-container-availability.sfsb-ha-persistence-type" => "hazelcast",
   "configs.config.#{payara_config}.monitoring-service.monitoring-enabled" => false,
   "#{payara_config}.http-service.virtual-server.server.property.send-error_1" => "'code=404 path=${com.sun.aas.instanceRoot}/docroot/index.html reason=Resource_not_found'",
-  "configs.config.server-config.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
-  "configs.config.server-config.network-config.network-listeners.network-listener.https-int-list.enabled" => false,
-  "configs.config.server-config.rest-monitoring-configuration.enabled" => false,
-  "configs.config.server-config.monitoring-service.mbean-enabled" => false,
-  "configs.config.server-config.monitoring-service.monitoring-enabled" => false,
-  "configs.config.server-config.microprofile-metrics-configuration.enabled" => false
+  "configs.config.#{config}.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
+  "configs.config.#{config}.network-config.network-listeners.network-listener.https-int-list.enabled" => false,
+  "configs.config.#{config}.rest-monitoring-configuration.enabled" => false,
+  "configs.config.#{config}.monitoring-service.mbean-enabled" => false,
+  "configs.config.#{config}.monitoring-service.monitoring-enabled" => false,
+  "configs.config.#{config}.microprofile-metrics-configuration.enabled" => false
 }
 
 hopsworks_configure_server "glassfish_configure" do
@@ -257,9 +244,8 @@ hopsworks_configure_server "glassfish_configure" do
   password_file password_file
   username username
   admin_port admin_port
-  target "#{payara_config}"
+  target payara_config
   asadmin asadmin
-  admin_pwd password_file
   override_props glassfish_network_listener_conf
   action :glassfish_configure
 end
@@ -270,9 +256,8 @@ hopsworks_configure_server "glassfish_configure_monitoring" do
   password_file password_file
   username username
   admin_port admin_port
-  target "#{payara_config}"
+  target payara_config
   asadmin asadmin
-  admin_pwd password_file
   action :glassfish_configure_monitoring
 end
 
@@ -415,7 +400,7 @@ end
 
 glassfish_deployable "hopsworks-ear" do
   component_name "hopsworks-ear:#{node['hopsworks']['version']}"
-  target "server"
+  target "#{config}"
   version current_version
   domain_name domain_name
   password_file password_file
@@ -427,12 +412,12 @@ glassfish_deployable "hopsworks-ear" do
   enabled true
   secure true
   ignore_failure true
-  only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-applications --type ejb #{config} | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
 end
 
 glassfish_deployable "hopsworks" do
   component_name "hopsworks-web:#{node['hopsworks']['version']}"
-  target "server"
+  target "#{config}"
   version current_version
   context_root "/hopsworks"
   domain_name domain_name
@@ -446,12 +431,12 @@ glassfish_deployable "hopsworks" do
   keep_state true
   enabled true
   ignore_failure true 
-  only_if "#{asadmin_cmd} list-applications --type web server | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
+  only_if "#{asadmin_cmd} list-applications --type web #{config} | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
 end
 
 glassfish_deployable "hopsworks-ca" do
   component_name "hopsworks-ca:#{node['hopsworks']['version']}"
-  target "server"
+  target "#{config}"
   version current_version
   context_root "/hopsworks-ca"
   domain_name domain_name
@@ -465,13 +450,12 @@ glassfish_deployable "hopsworks-ca" do
   keep_state true
   enabled true
   ignore_failure true
-  only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-applications --type ejb #{config} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
 hopsworks_configure_server "change_node_master_password" do
   username username
   asadmin asadmin
-  admin_pwd password_file
   nodedir nodedir
   node_name node['hopsworks']['node_name']
   current_master_password "changeit"
@@ -501,7 +485,7 @@ glassfish_resources.each do |val|
     username username
     admin_port admin_port
     secure false
-    only_if "#{asadmin_cmd} list-resource-refs server | grep #{val}"
+    only_if "#{asadmin_cmd} list-resource-refs #{config} | grep #{val}"
     not_if "#{asadmin_cmd} list-resource-refs #{deployment_group} | grep #{val}"
   end
 end
