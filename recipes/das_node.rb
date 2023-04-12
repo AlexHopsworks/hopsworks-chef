@@ -506,7 +506,6 @@ glassfish_resources.each do |val|
 end
 
 #restart only if new (no deployed apps)
-#restart only if new
 glassfish_asadmin "restart-domain" do
   domain_name domain_name
   password_file password_file

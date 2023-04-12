@@ -4,6 +4,8 @@ asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 username=node['hopsworks']['admin']['user']
 nodedir=node['glassfish']['nodes_dir']
+payara_config = "hopsworks-config"
+deployment_group = "hopsworks-dg"
 
 admin_port = node['hopsworks']['admin']['port']
 das_ip=private_recipe_ip('hopsworks', 'das_node')
@@ -27,7 +29,7 @@ end
 node_name=get_node_name(asadmin_cmd, public_ip)
 instance_name="instance#{node_name.scan(/\d+/)}"
 
-glassfish_asadmin "--host #{das_ip} create-local-instance --config #{payara_config} --node #{node_name} #{instance_name}" do
+glassfish_asadmin "--host #{das_ip} create-local-instance --config #{payara_config} --node #{node_name} #{instance_name} --deploymentgroup #{deployment_group}" do
   domain_name domain_name
   password_file password_file
   username username
