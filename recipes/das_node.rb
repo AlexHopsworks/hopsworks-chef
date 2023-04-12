@@ -382,7 +382,7 @@ config_nodes.each_with_index do |val, i|
     username username
     admin_port admin_port
     secure false
-    not_if "#{asadmin_cmd} list-nodes | grep #{node_name}"
+    not_if "#{asadmin_cmd} list-nodes | grep worker#{index}"
   end
 end
 

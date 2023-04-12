@@ -11,8 +11,9 @@ admin_port = node['hopsworks']['admin']['port']
 das_ip=private_recipe_ip('hopsworks', 'das_node')
 public_ip=my_public_ip()
 
-asadmin_cmd="#{asadmin} -I false -t --host #{das_ip} --port #{admin_port} --user #{username} --passwordfile #{password_file}"
+asadmin_cmd="#{asadmin} -I false --host #{das_ip} --port #{admin_port} --user #{username} --passwordfile #{password_file}"
 service_name="glassfish-instance"
+node.override['glassfish']['install_dir'] = "#{node['glassfish']['install_dir']}/glassfish/versions/current"
 
 #we do not want glassfish DAS on worker 
 service "glassfish-#{domain_name}" do
@@ -27,9 +28,15 @@ service "glassfish-#{domain_name}" do
 end
 
 node_name=get_node_name(asadmin_cmd, public_ip)
-instance_name="instance#{node_name.scan(/\d+/)}"
+instance_name="instance#{node_name.scan(/\d+/)[0]}"
 
-glassfish_asadmin "--host #{das_ip} create-local-instance --config #{payara_config} --node #{node_name} #{instance_name} --deploymentgroup #{deployment_group}" do
+directory "#{nodedir}" do
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  mode '0750'
+end
+
+glassfish_asadmin "--host #{das_ip} create-local-instance --config #{payara_config} --node #{node_name} --nodedir #{nodedir}  #{instance_name}" do
   domain_name domain_name
   password_file password_file
   username username
@@ -45,6 +52,14 @@ glassfish_asadmin "--host #{das_ip} create-system-properties --target #{instance
   admin_port admin_port
   secure false
   not_if "#{asadmin_cmd} list-system-properties #{instance_name} | grep hazelcast.local.publicAddress=#{public_ip}"
+end
+
+glassfish_asadmin "--host #{das_ip} add-instance-to-deployment-group --instance #{instance_name} --deploymentgroup #{deployment_group}" do
+  domain_name domain_name
+  password_file password_file
+  username username
+  admin_port admin_port
+  secure false
 end
 
 log_dir="#{nodedir}/#{node_name}/#{instance_name}/logs"
