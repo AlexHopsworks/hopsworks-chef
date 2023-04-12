@@ -375,7 +375,8 @@ end
 
 # This is done here to reserve the name of the worker
 config_nodes.each_with_index do |val, i|
-  glassfish_asadmin "create-node-config --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} worker#{index + 1}" do
+  index = i + 1 + ssh_nodes.length()
+  glassfish_asadmin "create-node-config --nodehost #{val} --installdir #{node['glassfish']['base_dir']}/versions/current --nodedir #{nodedir} worker#{index}" do
     domain_name domain_name
     password_file password_file
     username username
