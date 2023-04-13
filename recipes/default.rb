@@ -407,7 +407,7 @@ jndiDB = "jdbc/hopsworks"
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 asadmin_cmd = "#{asadmin} --user #{username} --passwordfile #{password_file}"
-config = "hopsworks-config"
+config = nil #"hopsworks-config"
 
 template "#{domains_dir}/#{domain_name}/config/login.conf" do
   cookbook 'hopsworks'
