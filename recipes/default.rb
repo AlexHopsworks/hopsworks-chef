@@ -407,7 +407,7 @@ jndiDB = "jdbc/hopsworks"
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 asadmin_cmd = "#{asadmin} --user #{username} --passwordfile #{password_file}"
-config="hopsworks-config"
+config=nil #"hopsworks-config"
 
 template "#{domains_dir}/#{domain_name}/config/login.conf" do
   cookbook 'hopsworks'
@@ -458,14 +458,16 @@ glassfish_secure_admin domain_name do
   action :enable
 end
 
-# Create a configuration b/c server-config can not be used for HA
-glassfish_asadmin "copy-config default-config #{config}" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-configs | grep #{config}"
+# Create a configuration
+if !config.nil?
+  glassfish_asadmin "copy-config default-config #{config}" do
+    domain_name domain_name
+    password_file password_file
+    username username
+    admin_port admin_port
+    secure false
+    not_if "#{asadmin_cmd} list-configs | grep #{config}"
+  end
 end
 
 hopsworks_configure_server "glassfish_configure_realm" do
