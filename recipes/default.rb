@@ -476,6 +476,7 @@ hopsworks_configure_server "glassfish_configure_network" do
   target config
   asadmin asadmin
   internal_port node['hopsworks']['internal']['port']
+  network_name "https-internal"
   action :glassfish_configure_network
 end
 
