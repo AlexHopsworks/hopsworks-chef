@@ -193,6 +193,9 @@ action :glassfish_configure_realm do
   asadmin=new_resource.asadmin
   realmname = "kthfsrealm"
   jndiDB = "jdbc/hopsworks"
+
+  asadmin_cmd="#{asadmin} --user #{username} --passwordfile #{password_file}"
+
   props =  {
     'datasource-jndi' => jndiDB,
     'password-column' => 'password',
@@ -206,18 +209,19 @@ action :glassfish_configure_realm do
     'digest-algorithm' => 'SHA-256'
   }
   
-   glassfish_auth_realm "#{realmname}" do
-     target target
-     realm_name "#{realmname}"
-     jaas_context "jdbcRealm"
-     properties props
-     domain_name domain_name
-     password_file password_file
-     username username
-     admin_port admin_port
-     secure false
-     classname "com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm"
-   end
+  glassfish_auth_realm "#{realmname}" do
+    target target
+    realm_name "#{realmname}"
+    jaas_context "jdbcRealm"
+    properties props
+    domain_name domain_name
+    password_file password_file
+    username username
+    admin_port admin_port
+    secure false
+    classname "com.sun.enterprise.security.auth.realm.jdbc.JDBCRealm"
+    not_if "#{asadmin_cmd} list-auth-realms #{target} | grep kthfsrealm"
+  end
 end
 
 action :change_node_master_password do

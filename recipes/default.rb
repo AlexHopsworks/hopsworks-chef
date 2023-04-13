@@ -407,7 +407,7 @@ jndiDB = "jdbc/hopsworks"
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 asadmin_cmd = "#{asadmin} --user #{username} --passwordfile #{password_file}"
-config=nil #"hopsworks-config"
+config = "hopsworks-config"
 
 template "#{domains_dir}/#{domain_name}/config/login.conf" do
   cookbook 'hopsworks'
@@ -458,8 +458,8 @@ glassfish_secure_admin domain_name do
   action :enable
 end
 
-# Create a configuration
 if !config.nil?
+  # Create a new configuration
   glassfish_asadmin "copy-config default-config #{config}" do
     domain_name domain_name
     password_file password_file
@@ -480,35 +480,6 @@ hopsworks_configure_server "glassfish_configure_realm" do
   action :glassfish_configure_realm
 end
 
-hopsworks_configure_server "glassfish_configure_network" do
-  domain_name domain_name
-  domains_dir domains_dir
-  password_file password_file
-  username username
-  admin_port admin_port
-  target config
-  asadmin asadmin
-  internal_port node['hopsworks']['internal']['port']
-  network_name "https-internal"
-  action :glassfish_configure_network
-end
-
-glassfish_asadmin "set configs.config.#{config}.cdi-service.enable-concurrent-deployment=true" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-end
-
-glassfish_asadmin "set configs.config.#{config}.cdi-service.pre-loader-thread-pool-size=#{node['glassfish']['ejb_loader']['thread_pool_size']}" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-end
-
 # add new network listener for Hopsworks to listen on an internal port
 hopsworks_configure_server "glassfish_configure_network" do
   domain_name domain_name
@@ -523,15 +494,6 @@ hopsworks_configure_server "glassfish_configure_network" do
   action :glassfish_configure_network
 end
 
-glassfish_asadmin "create-managed-executor-service --enabled=true --longrunningtasks=true --corepoolsize=50 --maximumpoolsize=400 --keepaliveseconds=60 --taskqueuecapacity=20000 concurrent/condaExecutorService" do
-   domain_name domain_name
-   password_file password_file
-   username username
-   admin_port admin_port
-   secure false
-  not_if "#{asadmin_cmd} list-managed-executor-services | grep 'conda'"
-end
-
 hopsworks_configure_server "glassfish_configure" do
   domain_name domain_name
   domains_dir domains_dir
@@ -541,6 +503,15 @@ hopsworks_configure_server "glassfish_configure" do
   target config
   asadmin asadmin
   action :glassfish_configure
+end
+
+glassfish_asadmin "create-managed-executor-service --enabled=true --longrunningtasks=true --corepoolsize=50 --maximumpoolsize=400 --keepaliveseconds=60 --taskqueuecapacity=20000 concurrent/condaExecutorService" do
+   domain_name domain_name
+   password_file password_file
+   username username
+   admin_port admin_port
+   secure false
+  not_if "#{asadmin_cmd} list-managed-executor-services | grep 'conda'"
 end
 
 glassfish_asadmin "create-managed-executor-service --enabled=true --longrunningtasks=true --corepoolsize=10 --maximumpoolsize=200 --keepaliveseconds=60 --taskqueuecapacity=10000 concurrent/kagentExecutorService" do
