@@ -9,7 +9,7 @@ Chef::Resource.send(:include, Hops::Helpers)
 
 domain_name= node['hopsworks']['domain_name']
 domains_dir = node['hopsworks']['domains_dir']
-config="server-config"
+
 # This is set correctly in hopsworks::install by the chef-glassfish recipe. As each recipe has it's own
 # instance of chef we need to re-set it here.
 # If you set it in the attributes it will break glassfish installation.
@@ -407,6 +407,7 @@ jndiDB = "jdbc/hopsworks"
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 asadmin_cmd = "#{asadmin} --user #{username} --passwordfile #{password_file}"
+config="hopsworks-config"
 
 template "#{domains_dir}/#{domain_name}/config/login.conf" do
   cookbook 'hopsworks'
@@ -455,6 +456,16 @@ glassfish_secure_admin domain_name do
   admin_port admin_port
   secure false
   action :enable
+end
+
+# Create a configuration b/c server-config can not be used for HA
+glassfish_asadmin "copy-config default-config #{config}" do
+  domain_name domain_name
+  password_file password_file
+  username username
+  admin_port admin_port
+  secure false
+  not_if "#{asadmin_cmd} list-configs | grep #{config}"
 end
 
 hopsworks_configure_server "glassfish_configure_realm" do
@@ -665,13 +676,13 @@ glassfish_asadmin "create-managed-executor-service --enabled=true --threadpriori
 end
 
 logging_conf = {
-  "com.sun.enterprise.#{config}.logging.GFFileHandler.logtoFile" => true,
-  "com.sun.enterprise.#{config}.logging.GFFileHandler.rotationLimitInBytes" => node['hopsworks']['logsize'],
+  "com.sun.enterprise.server.logging.GFFileHandler.logtoFile" => true,
+  "com.sun.enterprise.server.logging.GFFileHandler.rotationLimitInBytes" => node['hopsworks']['logsize'],
   # the main logger doesn't work either.
   # These are just some random number, we are not enabling this logger. However if they are not set
-  "fish.payara.enterprise.#{config}.logging.PayaraNotificationFileHandler.rotationLimitInBytes" => 2000000,
-  "fish.payara.enterprise.#{config}.logging.PayaraNotificationFileHandler.rotationTimelimitInMinutes" => 0,
-  "fish.payara.enterprise.#{config}.logging.PayaraNotificationFileHandler.maxHistoryFiles" => 3
+  "fish.payara.enterprise.server.logging.PayaraNotificationFileHandler.rotationLimitInBytes" => 2000000,
+  "fish.payara.enterprise.server.logging.PayaraNotificationFileHandler.rotationTimelimitInMinutes" => 0,
+  "fish.payara.enterprise.server.logging.PayaraNotificationFileHandler.maxHistoryFiles" => 3
 }
 
 logging_conf.each do |property, value|
@@ -768,14 +779,14 @@ end
 if node['hopsworks']['http_logs']['enabled'].eql? "true"
   http_logging_conf = {
     # Enable http logging
-    "#{config}.http-service.access-logging-enabled" => 'true',
+    "server.http-service.access-logging-enabled" => 'true',
     # If you change the suffix, you should also change dump_web_logs_to_hdfs.sh.erb file
     # ':' is not a legal filename character in HDFS, thus '_'
-    "#{config}.http-service.access-log.rotation-suffix" => 'yyyy-MM-dd-kk_mm',
-    "#{config}.http-service.access-log.max-history-files" => '10',
-    "#{config}.http-service.access-log.buffer-size-bytes" => '32768',
-    "#{config}.http-service.access-log.write-interval-seconds" => '120',
-    "#{config}.http-service.access-log.rotation-interval-in-minutes" => "1400"
+    "server.http-service.access-log.rotation-suffix" => 'yyyy-MM-dd-kk_mm',
+    "server.http-service.access-log.max-history-files" => '10',
+    "server.http-service.access-log.buffer-size-bytes" => '32768',
+    "server.http-service.access-log.write-interval-seconds" => '120',
+    "server.http-service.access-log.rotation-interval-in-minutes" => "1400"
   }
 
   http_logging_conf.each do |property, value|
