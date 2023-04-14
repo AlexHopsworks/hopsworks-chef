@@ -130,58 +130,21 @@ glassfish_asadmin "copy-config default-config #{payara_config}" do
   not_if "#{asadmin_cmd} list-configs | grep #{payara_config}"
 end
 
-glassfish_asadmin "delete-jvm-options --target #{payara_config} -Xmx512m" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-  only_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xmx512m"
-end
+jvm_options = [
+  "-XX:MaxPermSize=#{node['glassfish']['max_perm_size']}m", 
+  "-Xss#{node['glassfish']['max_stack_size']}k", 
+  "-Xms#{node['glassfish']['min_mem']}m", 
+  "-Xmx#{node['glassfish']['max_mem']}m", 
+  "-DHADOOP_HOME=#{node['hops']['dir']}/hadoop", 
+  "-DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop"]
 
-glassfish_asadmin "create-jvm-options --target #{payara_config} -Xss#{node['glassfish']['max_stack_size']}k" do
+glassfish_jvm_options "JvmOptions #{payara_config}" do
   domain_name domain_name
-  password_file password_file
-  username username
   admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xss#{node['glassfish']['max_stack_size']}k"
-end
-
-glassfish_asadmin "create-jvm-options --target #{payara_config} -Xms#{node['glassfish']['min_mem']}m" do
-  domain_name domain_name
-  password_file password_file
   username username
-  admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xms#{node['glassfish']['min_mem']}m"
-end
-
-glassfish_asadmin "create-jvm-options --target #{payara_config} -Xmx#{node['glassfish']['max_mem']}m" do
-  domain_name domain_name
   password_file password_file
-  username username
-  admin_port admin_port
   secure false
-  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep Xmx#{node['glassfish']['max_mem']}m"
-end
-
-glassfish_asadmin "create-jvm-options --target #{payara_config} -DHADOOP_HOME=#{node['hops']['dir']}/hadoop" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep DHADOOP_HOME"
-end
-
-glassfish_asadmin "create-jvm-options --target #{payara_config} -DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop" do
-  domain_name domain_name
-  password_file password_file
-  username username
-  admin_port admin_port
-  secure false
-  not_if "#{asadmin_cmd} list-jvm-options --target #{payara_config} | grep DHADOOP_CONF_DIR="
+  options jvm_options
 end
 
 hopsworks_configure_server "glassfish_configure_realm" do
@@ -207,29 +170,25 @@ hopsworks_configure_server "glassfish_configure_network" do
   action :glassfish_configure_network
 end
 
-# http internal for load balancer
-hopsworks_configure_server "glassfish_configure_network" do
-  domain_name domain_name
-  domains_dir domains_dir
-  password_file password_file
-  username username
-  admin_port admin_port
-  target payara_config
-  asadmin asadmin
-  internal_port 28182
-  network_name "http-internal"
-  securityenabled false
-  action :glassfish_configure_network
+if node['hopsworks']['ha']['loadbalancer'].to_s == "true"
+  # http internal for load balancer
+  hopsworks_configure_server "glassfish_configure_network" do
+    domain_name domain_name
+    domains_dir domains_dir
+    password_file password_file
+    username username
+    admin_port admin_port
+    target payara_config
+    asadmin asadmin
+    internal_port 28182
+    network_name "http-internal"
+    securityenabled false
+    action :glassfish_configure_network
+  end
 end
 
-# temp https-internal.security-enabled=false until proxy ssl is fixed
-# disable server monitoring on server
-# temp disable monitoring for payara_config until it is fixed
+# disable monitoring and http-listeners on server-config
 glassfish_network_listener_conf = {
-  "configs.config.#{payara_config}.network-config.network-listeners.network-listener.http-listener-1.enabled" => false,
-  "#{payara_config}.availability-service.ejb-container-availability.sfsb-ha-persistence-type" => "hazelcast",
-  "configs.config.#{payara_config}.monitoring-service.monitoring-enabled" => false,
-  "#{payara_config}.http-service.virtual-server.server.property.send-error_1" => "'code=404 path=${com.sun.aas.instanceRoot}/docroot/index.html reason=Resource_not_found'",
   "configs.config.#{config}.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
   "configs.config.#{config}.network-config.network-listeners.network-listener.https-int-list.enabled" => false,
   "configs.config.#{config}.rest-monitoring-configuration.enabled" => false,

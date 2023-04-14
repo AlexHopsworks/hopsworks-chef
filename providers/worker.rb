@@ -1,9 +1,106 @@
-action :add_to_services do
+action :configure_node do
   asadmin=new_resource.asadmin
   admin_port=new_resource.admin_port
   username=new_resource.username
   password_file=new_resource.password_file
   nodedir=new_resource.nodedir
+  node_name=new_resource.node_name
+  instance_name=new_resource.instance_name
+
+  log_dir="#{nodedir}/#{node_name}/#{instance_name}/logs"
+  data_volume_logs_dir="#{node['hopsworks']['data_volume']['root_dir']}/#{node_name}/logs"
+
+  directory "#{node['hopsworks']['data_volume']['root_dir']}/#{node_name}" do
+    owner node['glassfish']['user']
+    group node['glassfish']['group']
+    mode '0750'
+  end
+
+  directory "#{data_volume_logs_dir}" do
+    owner node['glassfish']['user']
+    group node['glassfish']['group']
+    mode '0750'
+  end
+
+  bash 'Move glassfish logs to data volume' do
+    user 'root'
+    code <<-EOH
+      set -e
+      mv -f #{log_dir}/* #{data_volume_logs_dir}
+      mv -f #{log_dir} #{data_volume_logs_dir}_deprecated
+    EOH
+    only_if { conda_helpers.is_upgrade }
+    only_if { File.directory?(log_dir)}
+    not_if { File.symlink?(log_dir)}
+  end
+
+  link "#{log_dir}" do
+    owner node['glassfish']['user']
+    group node['glassfish']['group']
+    mode '0750'
+    to data_volume_logs_dir
+  end
+
+  bash "create_users_groups_view" do
+    user "root"
+    code <<-EOH
+      #{node['ndb']['scripts_dir']}/mysql-client.sh --database=hopsworks -e \"CREATE OR REPLACE ALGORITHM=UNDEFINED VIEW users_groups AS select u.username AS username,u.password AS password,u.secret AS secret,u.email AS email,g.group_name AS group_name from ((user_group ug join users u on((u.uid = ug.uid))) join bbc_group g on((g.gid = ug.gid)));\" 
+    EOH
+  end
+
+  # Register Glassfish with Consul
+  template "#{node['glassfish']['domains_dir']}/#{node['hopsworks']['domain_name']}/bin/glassfish-health.sh" do
+    source "consul/glassfish-health.sh.erb"
+    owner node['hopsworks']['user']
+    group node['hops']['group']
+    mode 0750
+  end
+
+  consul_service "Registering Glassfish worker with Consul" do
+    service_definition "consul/glassfish-worker-consul.hcl.erb"
+    reload_consul false
+    action :register
+  end
+
+  # We can't use the internal port yet as the certificate has not been generated yet
+  hopsworks_certs "generate-int-certs" do
+    subject     "/CN=#{node['hopsworks']['hopsworks_public_host']}/OU=0"
+    action      :generate_int_certs
+  end
+
+  hopsworks_certs "import-user-certs" do
+    action :import_certs
+    not_if { node['hopsworks']['https']['key_url'].eql?("") }
+  end
+
+  hopsworks_alt_url = "https://#{private_recipe_ip("hopsworks","default")}:#{node["hopsworks"]["internal"]["port"]}"
+  kagent_hopsify "Generate x.509" do
+    user node['hopsworks']['user']
+    crypto_directory x509_helper.get_crypto_dir(node['hopsworks']['user'])
+    hopsworks_alt_url hopsworks_alt_url
+    common_name node['hopsworks']['hopsworks_public_host']
+    action :generate_x509
+  end
+
+  hopsworks_configure_server "change_node_master_password" do
+    username username
+    asadmin asadmin
+    nodedir nodedir
+    node_name node_name
+    current_master_password "changeit"
+    action :change_node_master_password
+  end
+
+  kagent_config "glassfish-#{domain_name}" do
+    service "glassfish_#{domain_name}"
+    role service_name
+    log_file "#{nodedir}/#{node_name}/#{instance_name}/logs/server.log"
+    restart_agent true
+    only_if {node['kagent']['enabled'].casecmp? "true"}
+    only_if { ::File.directory?("#{nodedir}")}
+    not_if "systemctl is-active --quiet #{service_name}"
+  end
+
   service_name=new_resource.service_name
   systemd_start_timeout=new_resource.systemd_start_timeout
   systemd_stop_timeout=new_resource.systemd_stop_timeout
@@ -24,10 +121,13 @@ action :add_to_services do
               start_domain_timeout: systemd_start_timeout,
               stop_domain_timeout: systemd_stop_timeout)
     notifies :start, "service[#{service_name}]", :delayed
+    not_if "systemctl is-active --quiet #{service_name}"
   end
 
   service service_name do
     supports start: true, restart: true, stop: true, status: true
     action [:enable]
+    not_if "systemctl is-active --quiet #{service_name}"
   end
+
 end

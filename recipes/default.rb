@@ -407,7 +407,6 @@ jndiDB = "jdbc/hopsworks"
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
 password_file = "#{domains_dir}/#{domain_name}_admin_passwd"
 asadmin_cmd = "#{asadmin} --user #{username} --passwordfile #{password_file}"
-config = nil #"hopsworks-config"
 
 template "#{domains_dir}/#{domain_name}/config/login.conf" do
   cookbook 'hopsworks'
@@ -458,24 +457,11 @@ glassfish_secure_admin domain_name do
   action :enable
 end
 
-if !config.nil?
-  # Create a new configuration
-  glassfish_asadmin "copy-config default-config #{config}" do
-    domain_name domain_name
-    password_file password_file
-    username username
-    admin_port admin_port
-    secure false
-    not_if "#{asadmin_cmd} list-configs | grep #{config}"
-  end
-end
-
 hopsworks_configure_server "glassfish_configure_realm" do
   domain_name domain_name
   password_file password_file
   username username
   admin_port admin_port
-  target config
   asadmin asadmin
   action :glassfish_configure_realm
 end
@@ -487,7 +473,6 @@ hopsworks_configure_server "glassfish_configure_network" do
   password_file password_file
   username username
   admin_port admin_port
-  target config
   asadmin asadmin
   internal_port node['hopsworks']['internal']['port']
   network_name "https-internal"
@@ -500,7 +485,6 @@ hopsworks_configure_server "glassfish_configure" do
   password_file password_file
   username username
   admin_port admin_port
-  target config
   asadmin asadmin
   action :glassfish_configure
 end

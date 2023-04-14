@@ -237,25 +237,7 @@ node.override = {
           'remote_access' => false,
           'secure' => false,
           'environment_file' => node['hopsworks']['env_var_file'],
-          'jvm_options' => ["-DHADOOP_HOME=#{node['hops']['dir']}/hadoop", "-DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop", '-Dcom.sun.enterprise.tools.admingui.NO_NETWORK=true'],
-          'default-config' => {
-            'debug' => node['hopsworks']['debug'],    
-            'systemd_enabled' => true,
-            'systemd_start_timeout' => 900,
-            'min_memory' => node['glassfish']['min_mem'],
-            'max_memory' => node['glassfish']['max_mem'],
-            'max_perm_size' => node['glassfish']['max_perm_size'],
-            'max_stack_size' => node['glassfish']['max_stack_size'],
-            'port' => 8080, #This is hardcoded as it's not used. Http listener is disabled in hopsworks::default.
-            'https_port' => node['hopsworks']['https']['port'].to_i,
-            'admin_port' => node['hopsworks']['admin']['port'].to_i,
-            'username' => node['hopsworks']['admin']['user'],
-            'password' => node['hopsworks']['admin']['password'],
-            'master_password' => node['hopsworks']['master']['password'],
-            'remote_access' => false,
-            'secure' => false,
-            'environment_file' => node['hopsworks']['env_var_file'],
-            'jvm_options' => ["-DHADOOP_HOME=#{node['hops']['dir']}/hadoop", "-DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop", '-Dcom.sun.enterprise.tools.admingui.NO_NETWORK=true']
+          'jvm_options' => ["-DHADOOP_HOME=#{node['hops']['dir']}/hadoop", "-DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop", '-Dcom.sun.enterprise.tools.admingui.NO_NETWORK=true']
           },
         },
         'extra_libraries' => {
@@ -413,7 +395,7 @@ node.override = {
             }
           }
         }
-      }
+      },
     }
   }
 }
