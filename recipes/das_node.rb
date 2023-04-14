@@ -270,7 +270,6 @@ link "#{log_dir}" do
   to node['hopsworks']['data_volume']['node_logs']
 end
 
-# Allow no instance on DAS node
 glassfish_asadmin "create-system-properties --target #{local_instance} hazelcast.local.publicAddress=#{public_ip}" do
   domain_name domain_name
   password_file password_file
@@ -340,7 +339,6 @@ glassfish_asadmin "create-deployment-group #{deployment_group}" do
   not_if "#{asadmin_cmd} list-deployment-groups | grep #{deployment_group}"
 end
 
-# Allow no instance on DAS node
 glassfish_asadmin "add-instance-to-deployment-group --instance #{local_instance} --deploymentgroup #{deployment_group}" do
   domain_name domain_name
   password_file password_file
