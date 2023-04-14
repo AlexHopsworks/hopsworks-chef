@@ -238,7 +238,6 @@ node.override = {
           'secure' => false,
           'environment_file' => node['hopsworks']['env_var_file'],
           'jvm_options' => ["-DHADOOP_HOME=#{node['hops']['dir']}/hadoop", "-DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop", '-Dcom.sun.enterprise.tools.admingui.NO_NETWORK=true']
-          },
         },
         'extra_libraries' => {
           'jdbcdriver' => {
@@ -395,7 +394,7 @@ node.override = {
             }
           }
         }
-      },
+      }
     }
   }
 }

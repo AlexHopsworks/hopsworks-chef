@@ -359,7 +359,7 @@ end
 
 glassfish_deployable "hopsworks-ear" do
   component_name "hopsworks-ear:#{node['hopsworks']['version']}"
-  target "#{config}"
+  target config
   version current_version
   domain_name domain_name
   password_file password_file
@@ -376,7 +376,7 @@ end
 
 glassfish_deployable "hopsworks" do
   component_name "hopsworks-web:#{node['hopsworks']['version']}"
-  target "#{config}"
+  target config
   version current_version
   context_root "/hopsworks"
   domain_name domain_name
@@ -395,7 +395,7 @@ end
 
 glassfish_deployable "hopsworks-ca" do
   component_name "hopsworks-ca:#{node['hopsworks']['version']}"
-  target "#{config}"
+  target config
   version current_version
   context_root "/hopsworks-ca"
   domain_name domain_name
