@@ -412,7 +412,6 @@ glassfish_deployable "hopsworks-ca" do
   only_if "#{asadmin_cmd} list-applications --type ejb #{config} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
-# Allow no instance on DAS node
 hopsworks_configure_server "change_node_master_password" do
   username username
   asadmin asadmin
@@ -461,7 +460,6 @@ glassfish_asadmin "restart-domain" do
   only_if "#{asadmin_cmd} list-instances #{deployment_group} | grep -w \"not running\""
 end
 
-# Allow no instance on DAS node
 hopsworks_worker "add_to_services" do
   asadmin asadmin
   admin_port admin_port
