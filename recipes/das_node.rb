@@ -270,6 +270,7 @@ link "#{log_dir}" do
   to node['hopsworks']['data_volume']['node_logs']
 end
 
+# Allow no instance on DAS node
 glassfish_asadmin "create-system-properties --target #{local_instance} hazelcast.local.publicAddress=#{public_ip}" do
   domain_name domain_name
   password_file password_file
@@ -339,6 +340,7 @@ glassfish_asadmin "create-deployment-group #{deployment_group}" do
   not_if "#{asadmin_cmd} list-deployment-groups | grep #{deployment_group}"
 end
 
+# Allow no instance on DAS node
 glassfish_asadmin "add-instance-to-deployment-group --instance #{local_instance} --deploymentgroup #{deployment_group}" do
   domain_name domain_name
   password_file password_file
@@ -412,6 +414,7 @@ glassfish_deployable "hopsworks-ca" do
   only_if "#{asadmin_cmd} list-applications --type ejb #{config} | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
+# Allow no instance on DAS node
 hopsworks_configure_server "change_node_master_password" do
   username username
   asadmin asadmin
@@ -460,22 +463,15 @@ glassfish_asadmin "restart-domain" do
   only_if "#{asadmin_cmd} list-instances #{deployment_group} | grep -w \"not running\""
 end
 
-kagent_config "glassfish-#{domain_name}" do
-  service "glassfish_#{domain_name}"
-  role service_name
-  log_file "#{nodedir}/#{node['hopsworks']['node_name']}/#{local_instance}/logs/server.log"
-  restart_agent true
-  only_if {node['kagent']['enabled'].casecmp? "true"}
-  only_if { ::File.directory?("#{nodedir}")}
-  not_if "systemctl is-active --quiet #{service_name}"
-end
-
+# Allow no instance on DAS node
 hopsworks_worker "add_to_services" do
   asadmin asadmin
   admin_port admin_port
   username username
   password_file password_file
   nodedir nodedir
+  node_name node['hopsworks']['node_name']
+  instance_name local_instance
   service_name service_name
   action :add_to_services
   not_if "systemctl is-active --quiet #{service_name}"

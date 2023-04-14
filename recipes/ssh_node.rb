@@ -38,3 +38,16 @@ hopsworks_worker "configure_node" do
   node_name node_name
   instance_name instance_name
 end
+
+hopsworks_worker "add_to_services" do
+  asadmin asadmin
+  admin_port admin_port
+  username username
+  password_file password_file
+  nodedir nodedir
+  node_name node_name
+  instance_name instance_name
+  service_name service_name
+  action :add_to_services
+  not_if "systemctl is-active --quiet #{service_name}"
+end

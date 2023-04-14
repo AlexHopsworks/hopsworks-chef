@@ -1,4 +1,4 @@
-actions :configure_node
+actions :configure_node, :add_to_services
 
 attribute :asadmin, :kind_of => String, :default => nil
 attribute :password_file, :kind_of => String, :default => nil
