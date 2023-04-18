@@ -10,6 +10,8 @@ action :add_to_services do
   systemd_start_timeout=new_resource.systemd_start_timeout
   systemd_stop_timeout=new_resource.systemd_stop_timeout
 
+  domain_name = node['hopsworks']['domain_name']
+
   start_instance_command = "#{asadmin} --user #{username} --passwordfile #{password_file} start-local-instance --sync normal --nodedir #{nodedir}"
   restart_instance_command = "#{asadmin} --user #{username} --passwordfile #{password_file} restart-local-instance --nodedir #{nodedir}"
   stop_instance_command = "#{asadmin} --user #{username} --passwordfile #{password_file} stop-local-instance --nodedir #{nodedir}"
