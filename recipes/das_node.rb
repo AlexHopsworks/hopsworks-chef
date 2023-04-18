@@ -130,19 +130,15 @@ glassfish_asadmin "copy-config default-config #{payara_config}" do
   not_if "#{asadmin_cmd} list-configs | grep #{payara_config}"
 end
 
-jvm_options = [
-  "-XX:MaxPermSize=#{node['glassfish']['max_perm_size']}m", 
-  "-Xss#{node['glassfish']['max_stack_size']}k", 
-  "-Xms#{node['glassfish']['min_mem']}m", 
-  "-Xmx#{node['glassfish']['max_mem']}m", 
-  "-DHADOOP_HOME=#{node['hops']['dir']}/hadoop", 
-  "-DHADOOP_CONF_DIR=#{node['hops']['dir']}/hadoop/etc/hadoop"]
-
+# Copy server jvm options
+output = shell_out("#{asadmin_cmd} list-jvm-options").stdout
+jvm_options = output.split("\n")
 glassfish_jvm_options "JvmOptions #{payara_config}" do
   domain_name domain_name
   admin_port admin_port
   username username
   password_file password_file
+  target payara_config
   secure false
   options jvm_options
 end
