@@ -201,7 +201,7 @@ end
 # disable monitoring and http-listeners on server-config
 glassfish_network_listener_conf = {
   "configs.config.#{config}.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
-  "configs.config.#{config}.network-config.network-listeners.network-listener.https-int-list.enabled" => false,
+  "configs.config.#{config}.network-config.network-listeners.network-listener.https-internal-list.enabled" => false,
   "configs.config.#{config}.rest-monitoring-configuration.enabled" => false,
   "configs.config.#{config}.monitoring-service.mbean-enabled" => false,
   "configs.config.#{config}.monitoring-service.monitoring-enabled" => false,
