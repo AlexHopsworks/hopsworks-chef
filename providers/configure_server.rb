@@ -90,6 +90,8 @@ action :glassfish_configure do
   asadmin=new_resource.asadmin
   override=new_resource.override_props
 
+  asadmin_cmd="#{asadmin} --terse=false --echo=false --user #{username} --passwordfile #{password_file}"
+
   glassfish_conf = {
     "#{target}.security-service.default-realm" => 'kthfsrealm',
     # Jobs in Hopsworks use the Timer service
