@@ -382,7 +382,7 @@ glassfish_deployable "hopsworks-ear" do
   enabled true
   secure true
   ignore_failure true
-  only_if "#{asadmin_cmd} list-applications --type ejb | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
 end
 
 glassfish_deployable "hopsworks" do
@@ -401,7 +401,7 @@ glassfish_deployable "hopsworks" do
   keep_state true
   enabled true
   ignore_failure true 
-  only_if "#{asadmin_cmd} list-applications --type web | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
+  only_if "#{asadmin_cmd} list-applications --type web server | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
 end
 
 glassfish_deployable "hopsworks-ca" do
@@ -420,7 +420,7 @@ glassfish_deployable "hopsworks-ca" do
   keep_state true
   enabled true
   ignore_failure true
-  only_if "#{asadmin_cmd} list-applications --type ejb | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
+  only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
 hopsworks_configure_server "change_node_master_password" do
