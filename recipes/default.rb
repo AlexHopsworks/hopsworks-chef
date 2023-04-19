@@ -479,10 +479,6 @@ hopsworks_configure_server "glassfish_configure_network" do
   action :glassfish_configure_network
 end
 
-glassfish_network_listener_conf = {
-  "server.http-service.virtual-server.server.property.send-error_1" => "'code=404 path=#{domains_dir}/#{domain_name}/docroot/index.html reason=Resource_not_found'",
-}
-
 hopsworks_configure_server "glassfish_configure" do
   domain_name domain_name
   domains_dir domains_dir
@@ -490,7 +486,6 @@ hopsworks_configure_server "glassfish_configure" do
   username username
   admin_port admin_port
   asadmin asadmin
-  override_props glassfish_network_listener_conf
   action :glassfish_configure
 end
 

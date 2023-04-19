@@ -17,8 +17,10 @@ domains_dir = node['glassfish']['domains_dir']
 admin_port = node['hopsworks']['admin']['port']
 username=node['hopsworks']['admin']['user']
 password=node['hopsworks']['admin']['password']
-ssh_nodes=private_recipe_ips('hopsworks', 'ssh_node')
-config_nodes=private_recipe_ips('hopsworks', 'config_node')
+
+ssh_nodes= node['hopsworks'].attribute?('ssh_node')? private_recipe_ips('hopsworks', 'ssh_node') : []
+config_nodes= node['hopsworks'].attribute?('config_node')? private_recipe_ips('hopsworks', 'config_node') : []
+
 current_version = node['hopsworks']['current_version']
 
 asadmin = "#{node['glassfish']['base_dir']}/versions/current/bin/asadmin"
@@ -199,6 +201,7 @@ end
 
 # disable monitoring and http-listeners on server-config
 glassfish_network_listener_conf = {
+  "#{payara_config}.http-service.virtual-server.server.property.send-error_1" => "'code=404 path=${com.sun.aas.instanceRoot}/docroot/index.html reason=Resource_not_found'",
   "configs.config.server-config.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
   "configs.config.server-config.network-config.network-listeners.network-listener.https-internal-list.enabled" => false,
   "configs.config.server-config.rest-monitoring-configuration.enabled" => false,
