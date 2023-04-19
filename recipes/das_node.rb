@@ -8,7 +8,6 @@ end
 package "openssh-server"
 public_ip=my_public_ip()
 payara_config = "hopsworks-config"
-config="server-config"
 deployment_group = "hopsworks-dg"
 local_instance = "instance0"
 service_name="glassfish-instance"
@@ -200,12 +199,12 @@ end
 
 # disable monitoring and http-listeners on server-config
 glassfish_network_listener_conf = {
-  "configs.config.#{config}.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
-  "configs.config.#{config}.network-config.network-listeners.network-listener.https-internal-list.enabled" => false,
-  "configs.config.#{config}.rest-monitoring-configuration.enabled" => false,
-  "configs.config.#{config}.monitoring-service.mbean-enabled" => false,
-  "configs.config.#{config}.monitoring-service.monitoring-enabled" => false,
-  "configs.config.#{config}.microprofile-metrics-configuration.enabled" => false
+  "configs.config.server-config.network-config.network-listeners.network-listener.http-listener-2.enabled" => false,
+  "configs.config.server-config.network-config.network-listeners.network-listener.https-internal-list.enabled" => false,
+  "configs.config.server-config.rest-monitoring-configuration.enabled" => false,
+  "configs.config.server-config.monitoring-service.mbean-enabled" => false,
+  "configs.config.server-config.monitoring-service.monitoring-enabled" => false,
+  "configs.config.server-config.microprofile-metrics-configuration.enabled" => false
 }
 
 hopsworks_configure_server "glassfish_configure" do
@@ -370,56 +369,36 @@ end
 
 glassfish_deployable "hopsworks-ear" do
   component_name "hopsworks-ear:#{node['hopsworks']['version']}"
-  target config
-  version current_version
+  target "server"
   domain_name domain_name
   password_file password_file
   username username
   admin_port admin_port
   action :undeploy
-  retries 1
-  keep_state true
-  enabled true
-  secure true
-  ignore_failure true
   only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ear:#{node['hopsworks']['version']}\""
 end
 
 glassfish_deployable "hopsworks" do
   component_name "hopsworks-web:#{node['hopsworks']['version']}"
-  target config
+  target "server"
   version current_version
-  context_root "/hopsworks"
   domain_name domain_name
   password_file password_file
   username username
   admin_port admin_port
-  secure true
   action :undeploy
-  async_replication false
-  retries 1
-  keep_state true
-  enabled true
-  ignore_failure true 
   only_if "#{asadmin_cmd} list-applications --type web server | grep -w \"hopsworks-web:#{node['hopsworks']['version']}\"" 
 end
 
 glassfish_deployable "hopsworks-ca" do
   component_name "hopsworks-ca:#{node['hopsworks']['version']}"
-  target config
+  target "server"
   version current_version
-  context_root "/hopsworks-ca"
   domain_name domain_name
   password_file password_file
   username username
   admin_port admin_port
-  secure true
   action :undeploy
-  async_replication false
-  retries 1
-  keep_state true
-  enabled true
-  ignore_failure true
   only_if "#{asadmin_cmd} list-applications --type ejb server | grep -w \"hopsworks-ca:#{node['hopsworks']['version']}\""
 end
 
@@ -455,7 +434,7 @@ glassfish_resources.each do |val|
     username username
     admin_port admin_port
     secure false
-    only_if "#{asadmin_cmd} list-resource-refs #{config} | grep #{val}"
+    only_if "#{asadmin_cmd} list-resource-refs server | grep #{val}"
     not_if "#{asadmin_cmd} list-resource-refs #{deployment_group} | grep #{val}"
   end
 end
