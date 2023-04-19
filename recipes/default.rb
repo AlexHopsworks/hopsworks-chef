@@ -480,7 +480,7 @@ hopsworks_configure_server "glassfish_configure_network" do
 end
 
 glassfish_network_listener_conf = {
-  "#{config}.http-service.virtual-server.server.property.send-error_1" => "'code=404 path=#{domains_dir}/#{domain_name}/docroot/index.html reason=Resource_not_found'",
+  "server.http-service.virtual-server.server.property.send-error_1" => "'code=404 path=#{domains_dir}/#{domain_name}/docroot/index.html reason=Resource_not_found'",
 }
 
 hopsworks_configure_server "glassfish_configure" do
