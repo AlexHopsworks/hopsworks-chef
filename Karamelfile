@@ -29,6 +29,7 @@ dependencies:
   - recipe: hopsworks::das_node
     local:
       - hopsworks::default
+      - kagent::default
     global:
       - hopsworks::das_ssh_key
   - recipe: hopsworks::ssh_node
