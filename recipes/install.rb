@@ -147,6 +147,14 @@ directory node['jupyter']['base_dir']  do
   action :create
 end
 
+#update permissions of base_dir for rstudio to 770
+directory node['rstudio']['base_dir']  do
+  owner node['hops']['yarnapp']['user']
+  group node['hops']['group']
+  mode "770"
+  action :create
+end
+
 directory node['hopsworks']['dir']  do
   owner node['hopsworks']['user']
   group node['hopsworks']['group']
@@ -654,6 +662,23 @@ kagent_sudoers "jupyter" do
   not_if       { node['install']['kubernetes'].casecmp("true") == 0 }
 end
 
+kagent_sudoers "rstudio" do
+  user          node['glassfish']['user']
+  group         "root"
+  script_name   "rstudio.sh"
+  template      "rstudio.sh.erb"
+  run_as        "ALL" # run this as root - inside we change to different users
+end
+
+kagent_sudoers "rstudio-project-cleanup" do
+  user          node['glassfish']['user']
+  group         "root"
+  script_name   "rstudio-project-cleanup.sh"
+  template      "rstudio-project-cleanup.sh.erb"
+  run_as        "ALL"
+  not_if       { node['install']['kubernetes'].casecmp("true") == 0 }
+end
+
 kagent_sudoers "convert-ipython-notebook" do 
   user          node['glassfish']['user']
   group         "root"
@@ -752,7 +777,8 @@ template "#{theDomain}/bin/tfserving-launch.sh" do
 end
 
 ["tensorboard-launch.sh", "tensorboard-cleanup.sh", "condasearch.sh", "list_environment.sh", "jupyter-kill.sh",
-"tfserving-kill.sh", "sklearn_serving-launch.sh", "sklearn_serving-kill.sh", "git-container-kill.sh"].each do |script|
+"tfserving-kill.sh", "sklearn_serving-launch.sh", "sklearn_serving-kill.sh", "git-container-kill.sh", "rstudio-kill.sh",
+ "rstudio_image_build.sh"].each do |script|
   template "#{theDomain}/bin/#{script}" do
     source "#{script}.erb"
     owner node['glassfish']['user']
@@ -764,6 +790,17 @@ end
 
 template "#{theDomain}/bin/jupyter-launch.sh" do
   source "jupyter-launch.sh.erb"
+  owner node['glassfish']['user']
+  group node['glassfish']['group']
+  mode "500"
+  action :create
+  variables({
+              :namenode_fdqn => namenode_fdqn,
+            })
+end
+
+template "#{theDomain}/bin/rstudio-launch.sh" do
+  source "rstudio-launch.sh.erb"
   owner node['glassfish']['user']
   group node['glassfish']['group']
   mode "500"
