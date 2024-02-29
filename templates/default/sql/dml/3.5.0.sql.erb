@@ -1,2 +1,15 @@
 REPLACE INTO `hopsworks`.`variables`(`id`, `value`, `visibility`) VALUES ("mount_hopsfs_in_python_job", "<%= node['hopsworks']['job']['mount_hopsfs_in_python_job'] %>", 1);
 REPLACE INTO `hopsworks`.`variables`(`id`, `value`, `visibility`) VALUES ("oauth_group_mapping_enabled", "<%= node['oauth']['group_mapping_enabled'] %>", 1);
+
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_host", "<%= node['hopsworks']['rstudio_host'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_origin_scheme", "<%= node['hopsworks']['rstudio_origin_scheme'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_www_address", "<%= node['hopsworks']['rstudio_www_address'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_session_timeout_minutes", "<%= node['hopsworks']['rstudio_session_timeout_minutes'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_logging_level", "<%= node['hopsworks']['rstudio_logging_level'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_logger_type", "<%= node['hopsworks']['rstudio_logger_type'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_log_file_max_size", "<%= node['hopsworks']['rstudio_log_file_max_size'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_dir", "<%= node['hopsworks']['rstudio_dir'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_user", "<%= node['hops']['yarnapp']['user'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_group", "<%= node['hops']['group'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_cran_repo", "<%= node['hopsworks']['rstudio_cran_repo'] %>");
+REPLACE INTO `hopsworks`.`variables`(`id`, `value`) VALUES ("rstudio_shutdown_timer_interval", "<%= node['rstudio']['shutdown_timer_interval'] %>");
