@@ -5,10 +5,10 @@ metadata
 
 cookbook 'conda', github: "logicalclocks/conda-chef", branch: "3.8"
 cookbook 'kagent', github: "logicalclocks/kagent-chef", branch: "3.8"
-cookbook 'hops', github: "logicalclocks/hops-hadoop-chef", branch: "3.8"
+cookbook 'hops', github: "AlexHopsworks/hops-hadoop-chef", branch: "rstudio-3.8"
 cookbook 'ndb', github: "logicalclocks/ndb-chef", branch: "3.8"
 cookbook 'hadoop_spark', github: "logicalclocks/spark-chef", branch: "3.8"
-cookbook 'flink', github: "logicalclocks/flink-chef", branch: "3.8"
+cookbook 'flink', github: "AlexHopsworks/flink-chef", branch: "rstudio-3.8"
 cookbook 'livy', github: "logicalclocks/livy-chef", branch: "3.8"
 cookbook 'epipe', github: "logicalclocks/epipe-chef", branch: "3.8"
 cookbook 'tensorflow', github: "logicalclocks/tensorflow-chef", branch: "3.8"
